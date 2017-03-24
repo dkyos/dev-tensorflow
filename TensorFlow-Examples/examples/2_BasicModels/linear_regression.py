@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 A linear regression learning algorithm example using TensorFlow library.
 

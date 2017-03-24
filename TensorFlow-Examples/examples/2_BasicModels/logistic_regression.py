@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 '''
 A logistic regression learning algorithm example using TensorFlow library.
 This example is using the MNIST database of handwritten digits
