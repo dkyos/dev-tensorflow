@@ -66,20 +66,20 @@ def conv_net(x, weights, biases, p_keep_conv, p_keep_hidden):
     #conv1 = tf.nn.dropout(conv1, p_keep_conv)
 
     # Convolution Layer
-    conv2 = conv2d(conv1, weights['wc2'], biases['bc2'])
+    #conv2 = conv2d(conv1, weights['wc2'], biases['bc2'])
     # Max Pooling (down-sampling)
-    conv2 = maxpool2d(conv2, k=2)
+    #conv2 = maxpool2d(conv2, k=2)
     #conv2 = tf.nn.dropout(conv2, p_keep_conv)
 
     # Convolution Layer
-    conv3 = conv2d(conv2, weights['wc3'], biases['bc3'])
+    #conv3 = conv2d(conv2, weights['wc3'], biases['bc3'])
     # Max Pooling (down-sampling)
-    conv3 = maxpool2d(conv3, k=2)
+    #conv3 = maxpool2d(conv3, k=2)
     #conv3 = tf.nn.dropout(conv3, p_keep_conv)
 
     # Fully connected layer
     # Reshape conv2 output to fit fully connected layer input
-    fc1 = tf.reshape(conv3, [-1, weights['wd1'].get_shape().as_list()[0]])
+    fc1 = tf.reshape(conv1, [-1, weights['wd1'].get_shape().as_list()[0]])
     fc1 = tf.add(tf.matmul(fc1, weights['wd1']), biases['bd1'])
     fc1 = tf.nn.relu(fc1)
     # Apply Dropout
@@ -93,20 +93,24 @@ def conv_net(x, weights, biases, p_keep_conv, p_keep_hidden):
 weights = {
     # 5x5 conv, 1 input, 32 outputs
     'wc1': tf.Variable(tf.random_normal([3, 3, 1, 32], stddev=0.01)),
+
     # 5x5 conv, 32 inputs, 64 outputs
-    'wc2': tf.Variable(tf.random_normal([3, 3, 32, 64], stddev=0.01)),
+    #'wc2': tf.Variable(tf.random_normal([3, 3, 32, 64], stddev=0.01)),
     # 5x5 conv, 64 inputs, 128 outputs
-    'wc3': tf.Variable(tf.random_normal([3, 3, 64, 128], stddev=0.01)),
+    #'wc3': tf.Variable(tf.random_normal([3, 3, 64, 128], stddev=0.01)),
     # fully connected, 7*7*64 inputs, 1024 outputs
-    'wd1': tf.Variable(tf.random_normal([4*4*128, 625], stddev=0.01)),
+    #'wd1': tf.Variable(tf.random_normal([4*4*128, 625], stddev=0.01)),
+    #'wd1': tf.Variable(tf.random_normal([7*7*64, 625], stddev=0.01)),
+
+    'wd1': tf.Variable(tf.random_normal([14*14*32, 625], stddev=0.01)),
     # 1024 inputs, 10 outputs (class prediction)
     'out': tf.Variable(tf.random_normal([625, n_classes], stddev=0.01))
 }
 
 biases = {
     'bc1': tf.Variable(tf.random_normal([32])),
-    'bc2': tf.Variable(tf.random_normal([64])),
-    'bc3': tf.Variable(tf.random_normal([128])),
+    #'bc2': tf.Variable(tf.random_normal([64])),
+    #'bc3': tf.Variable(tf.random_normal([128])),
     'bd1': tf.Variable(tf.random_normal([625])),
     'out': tf.Variable(tf.random_normal([n_classes]))
 }
@@ -158,3 +162,6 @@ with tf.Session() as sess:
         sess.run(accuracy, feed_dict={x: teX[start:end],
                                       y: teY[start:end],
                                       p_keep_conv: 1.0, p_keep_hidden: 1.0}))
+
+
+
