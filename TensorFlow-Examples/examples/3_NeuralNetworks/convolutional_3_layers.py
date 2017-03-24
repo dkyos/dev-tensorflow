@@ -154,6 +154,6 @@ with tf.Session() as sess:
 
     # Calculate accuracy for 256 mnist test images
     print("Testing Accuracy:", \
-        sess.run(accuracy, feed_dict={x: mnist.test.images[:256],
-                                      y: mnist.test.labels[:256],
+        sess.run(accuracy, feed_dict={x: teX[:256],
+                                      y: teY[:256],
                                       p_keep_conv: 1.0, p_keep_hidden: 1.0}))
