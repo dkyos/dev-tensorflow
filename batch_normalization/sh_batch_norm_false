@@ -1,0 +1,12 @@
+#!/bin/bash -x
+
+./run_main.py --weight-init normal           --bias-init zero   --batch-norm False
+./run_main.py --weight-init truncated_normal --bias-init zero   --batch-norm False
+./run_main.py --weight-init xavier           --bias-init zero   --batch-norm False
+./run_main.py --weight-init he               --bias-init zero   --batch-norm False
+
+./run_main.py --weight-init normal           --bias-init normal --batch-norm False
+./run_main.py --weight-init truncated_normal --bias-init normal --batch-norm False
+./run_main.py --weight-init xavier           --bias-init normal --batch-norm False
+./run_main.py --weight-init he               --bias-init normal --batch-norm False
+
