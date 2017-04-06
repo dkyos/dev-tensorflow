@@ -6,7 +6,10 @@ import tensorflow as tf
 import random
 import numpy as np
 import os
-import sys
+import sys\
+
+train_epochs = 100
+batch_size = 64
 
 TRAIN_FILENAME = 'ratings_train.txt'
 TRAIN_DATA_FILENAME = TRAIN_FILENAME + '.data'
@@ -89,21 +92,24 @@ def train():
 
         saver = tf.train.Saver()
         sess.run(tf.global_variables_initializer())
-        
-        for i in range(10000):
+
+        for epoch  in range(train_epochs):
             try:
-                batch = random.sample(input, 64) 
-            
-                x_batch, y_batch = zip(*batch)
-                train_step(x_batch, y_batch)
-                current_step = tf.train.global_step(sess, global_step)
-                if current_step % 100 == 0:
-                    batch = random.sample(test_input, 64)
-                    x_test, y_test = zip(*batch)
-                    evaluate(x_test, y_test)
-                if current_step % 1000 == 0:
-                    save_path = saver.save(sess, './textcnn.ckpt')
-                    print('model saved : %s' % save_path)
+                nBatch = int( len(input)/batch_size )
+                idx = np.random.permutation(len(input))
+
+                for i in range(nBatch):
+                    x_batch, y_batch = zip(*input[i*batch_size: (i+1)*batch_size])
+                    train_step(x_batch, y_batch)
+
+                    current_step = tf.train.global_step(sess, global_step)
+                    if current_step % 100 == 0:
+                        batch = random.sample(test_input, 64)
+                        x_test, y_test = zip(*batch)
+                        evaluate(x_test, y_test)
+                    if current_step % 1000 == 0:
+                        save_path = saver.save(sess, './textcnn.ckpt')
+                        print('model saved : %s' % save_path)
             except:
                 print ("Unexpected error:", sys.exc_info()[0])
                 raise
