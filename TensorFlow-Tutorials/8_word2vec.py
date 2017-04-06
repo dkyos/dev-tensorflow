@@ -2,6 +2,7 @@
 
 # Inspired by https://www.tensorflow.org/versions/r0.7/tutorials/word2vec/index.html
 import collections
+import math
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
@@ -29,31 +30,51 @@ sentences = ["the quick brown fox jumped over the lazy dog",
 
 # sentences to words and count
 words = " ".join(sentences).split()
+print ("========================================")
+print ("words: ", words)
+#=> words:  ['the', 'quick', 'brown', 'fox', 'jumped'...
 count = collections.Counter(words).most_common()
-print ("Word count", count[:5])
+print ("========================================")
+print ("Word count(Top 5): ", count[:5])
+#=> Word count(Top 5):  [('cats', 10), ('dogs', 6), ('and', 5), ('are', 4), ('love', 3)]
 
 # Build dictionaries
 rdic = [i[0] for i in count] #reverse dic, idx -> word
+print ("========================================")
+print (rdic)
+#=> ['cats', 'dogs', 'and', 'are', 'love', 'the', ....]
+
 dic = {w: i for i, w in enumerate(rdic)} #dic, word -> id
+print ("========================================")
+print (dic)
+#=> {..., 'love': 4,..., 'cats': 0,..., 'and': 2,.. 'are': 3,... 'dogs': 1...}
+
 voc_size = len(dic)
+print ("========================================")
+print('voc_size (=len(dic)): ', voc_size)
 
 # Make indexed word data
 data = [dic[word] for word in words]
+print ("========================================")
 print('Sample data', data[:10], [rdic[t] for t in data[:10]])
 
 # Let's make a training data for window size 1 for simplicity
+# sentences = ["the quick brown fox jumped over the lazy dog",...
 # ([the, brown], quick), ([quick, fox], brown), ([brown, jumped], fox), ...
 cbow_pairs = [];
 for i in range(1, len(data)-1) :
     cbow_pairs.append([[data[i-1], data[i+1]], data[i]]);
+print ("========================================")
 print('Context pairs', cbow_pairs[:10])
 
 # Let's make skip-gram pairs
+# sentences = ["the quick brown fox jumped over the lazy dog",...
 # (quick, the), (quick, brown), (brown, quick), (brown, fox), ...
 skip_gram_pairs = [];
 for c in cbow_pairs:
     skip_gram_pairs.append([c[1], c[0][0]])
     skip_gram_pairs.append([c[1], c[0][1]])
+print ("========================================")
 print('skip-gram pairs', skip_gram_pairs[:5])
 
 def generate_batch(size):
@@ -67,12 +88,15 @@ def generate_batch(size):
     return x_data, y_data
 
 # generate_batch test
+print ("========================================")
+print ('batch_size: ', batch_size)
 print ('Batches (x, y)', generate_batch(3))
 
 # Input data
 train_inputs = tf.placeholder(tf.int32, shape=[batch_size])
 # need to shape [batch_size, 1] for nn.nce_loss
 train_labels = tf.placeholder(tf.int32, shape=[batch_size, 1])
+
 # Ops and variables pinned to the CPU because of missing GPU implementation
 with tf.device('/cpu:0'):
     # Look up embeddings for inputs.
@@ -81,8 +105,13 @@ with tf.device('/cpu:0'):
     embed = tf.nn.embedding_lookup(embeddings, train_inputs) # lookup table
 
 # Construct the variables for the NCE loss
+#nce_weights = tf.Variable(
+#    tf.random_uniform([voc_size, embedding_size],-1.0, 1.0))
+#nce_biases = tf.Variable(tf.zeros([voc_size]))
+
 nce_weights = tf.Variable(
-    tf.random_uniform([voc_size, embedding_size],-1.0, 1.0))
+  tf.truncated_normal([voc_size, embedding_size],
+                        stddev=1.0 / math.sqrt(embedding_size)))
 nce_biases = tf.Variable(tf.zeros([voc_size]))
 
 # Compute the average NCE loss for the batch.
@@ -90,8 +119,12 @@ nce_biases = tf.Variable(tf.zeros([voc_size]))
 #   tf.nn.nce_loss(weights, biases, inputs, labels, num_sampled, num_classes ...)
 # It automatically draws negative samples when we evaluate the loss.
 loss = tf.reduce_mean(
-  tf.nn.nce_loss(nce_weights, nce_biases, embed, train_labels,
-                 num_sampled, voc_size))
+  tf.nn.nce_loss(weights=nce_weights,
+                   biases=nce_biases,
+                   labels=train_labels,
+                   inputs=embed,
+                   num_sampled=num_sampled,
+                   num_classes=voc_size))
 
 # Use the adam optimizer
 train_op = tf.train.AdamOptimizer(1e-1).minimize(loss)
@@ -99,7 +132,7 @@ train_op = tf.train.AdamOptimizer(1e-1).minimize(loss)
 # Launch the graph in a session
 with tf.Session() as sess:
     # Initializing all variables
-    tf.initialize_all_variables().run()
+    tf.global_variables_initializer().run()
 
     for step in range(10001):
         batch_inputs, batch_labels = generate_batch(batch_size)
@@ -120,3 +153,5 @@ if trained_embeddings.shape[1] == 2:
         plt.annotate(label, xy=(x, y), xytext=(5, 2),
             textcoords='offset points', ha='right', va='bottom')
     plt.savefig("word2vec.png")
+
+
