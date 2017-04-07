@@ -1,70 +1,123 @@
 #! /usr/bin/env python
 
 from data import *
-from textcnn import TextCNN
+from cnn import TextCNN
 import tensorflow as tf
 import random
 import numpy as np
 import os
-import sys\
+import sys
+import time
+import datetime
+import pickle
+import prepare_konlpy as prep
+from konlpy.tag import Twitter
 
-train_epochs = 100
-batch_size = 64
+dev_sample_percentage = 0.1
+num_epochs = 1
+batch_size = 50
 
 TRAIN_FILENAME = 'ratings_train.txt'
-TRAIN_DATA_FILENAME = TRAIN_FILENAME + '.data'
-TRAIN_VOCAB_FILENAME = TRAIN_FILENAME + '.vocab'
+TRAIN_PICKLE= 'pickle.data'
 
-TEST_FILENAME = 'ratings_test.txt'
-TEST_DATA_FILENAME = TEST_FILENAME + '.data'
-TEST_VOCAB_FILENAME = TEST_FILENAME + '.vocab'
+def batch_iter(data, batch_size, num_epochs):
+    """
+    Generates a batch iterator for a dataset.
+    """
+    print("============================================")
+    print(" Generates a batch iterator for a dataset.")
+
+    np.random.seed(10)
+    shuffle=True
+
+    data = np.array(data)
+    data_size = len(data)
+
+    num_batches_per_epoch = int((len(data)-1)/batch_size) + 1
+    print("data size: %d, # of batches per epoch: %d " % (data_size, num_batches_per_epoch))
+
+    for epoch in range(num_epochs):
+        # Shuffle the data at each epoch
+        if shuffle:
+            shuffle_indices = np.random.permutation(np.arange(data_size))
+            shuffled_data = data[shuffle_indices]
+        else:
+            shuffled_data = data
+        for batch_num in range(num_batches_per_epoch):
+            start_index = batch_num * batch_size
+            end_index = min((batch_num + 1) * batch_size, data_size)
+            yield shuffled_data[start_index:end_index]
 
 def train():
 
-    if (os.path.exists(TRAIN_DATA_FILENAME) and os.path.exists(TRAIN_VOCAB_FILENAME)):
-        print('load prebuilt train data & vocab file') 
-        input = load_data(TRAIN_DATA_FILENAME)
-        vocab =  load_vocab(TRAIN_VOCAB_FILENAME)
+    #########################################################################
+    if os.path.exists(TRAIN_PICKLE):
+        with open(TRAIN_PICKLE, 'rb') as f:  # Python 3: open(..., 'rb')
+            train_docs, train_labels = pickle.load(f)
     else:
-        print('build train data & vocab from raw text')
-        data = read_raw_data(TRAIN_FILENAME)
-        tokens = [t for d in data for t in d[0]]
-        
-        vocab = build_vocab(tokens)
-        input = build_input(data, vocab)
+        train_data = prep.read_data(TRAIN_FILENAME)
+        #print(train_data)
 
-        print('save train data & vocab file')
-        save_data(TRAIN_DATA_FILENAME, input)
-        save_vocab(TRAIN_VOCAB_FILENAME, vocab)
-    
-    if (os.path.exists(TEST_DATA_FILENAME) and os.path.exists(TEST_VOCAB_FILENAME)):
-        print('load prebuilt test data & vocab file ')
-        test_input = load_data(TEST_DATA_FILENAME)
-        test_vocab = load_vocab(TEST_VOCAB_FILENAME)
-    else:
-        print('build test data & vocab from raw text')
-        data = read_raw_data(TEST_FILENAME)
-        tokens = [t for d in data for t in d[0]]
-        
-        test_vocab = build_vocab(tokens)
-        test_input = build_input(data, test_vocab)
+        pos_tagger = Twitter()
 
-        print('save test data & vocab file')
-        save_data(TEST_DATA_FILENAME, test_input)
-        save_vocab(TEST_VOCAB_FILENAME, test_vocab)
+        start_time = time.time()
+        train_docs = [prep.tokenize(pos_tagger, row[1]) for row in train_data]
+        #print(train_docs)
+        train_labels = [float(row[2]) for row in train_data]
+        #print(train_labels)
+        print('---- %s seconds elapsed ----' % (time.time() - start_time))
 
-    
-    
+        # Saving the objects:
+        with open(TRAIN_PICKLE, 'wb') as f:  # Python 3: open(..., 'wb')
+            pickle.dump([train_docs, train_labels], f)
+
+    #########################################################################
+    train_labels = prep.labeller(train_labels)
+    #print(train_labels)
+    train_docs_p = prep.pad_sentences(train_docs)
+    #print(train_docs_p)
+
+    # Build vocabulary
+    voc, voc_inv = prep.build_vocab(train_docs_p)
+    #print(voc)
+    #print(voc_inv)
+
+    # Write vocabulary
+    with open('vocab.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([voc, voc_inv], f)
+
+    x, y = prep.build_input_data(train_docs_p, train_labels, voc)
+    #print(x)
+    #print(y)
+
+    # Write vocabulary
+    with open('vocab.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+        pickle.dump([voc, voc_inv], f)
+
+    # Randomly shuffle data
+    np.random.seed(10)
+    shuffle_indices = np.random.permutation(np.arange(len(y)))
+    x_shuffled = x[shuffle_indices]
+    y_shuffled = y[shuffle_indices]
+
+    # Split train/test set
+    # TODO: This is very crude, should use cross-validation
+    dev_sample_index = -1 * int( dev_sample_percentage * float(len(y)))
+    x_train, x_dev = x_shuffled[:dev_sample_index], x_shuffled[dev_sample_index:]
+    y_train, y_dev = y_shuffled[:dev_sample_index], y_shuffled[dev_sample_index:]
+    print("Vocabulary Size: {:d}".format(len(voc)))
+    print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
 
     with tf.Session() as sess:
 
-        seq_length = np.shape(input[0][0])[0]
-        num_class = np.shape(input[0][1])[0]
+        seq_length = x_train.shape[1]
+        num_class = y_train.shape[1]
+        voc_size = len(voc)
 
         print('initialize cnn filter')
-        print('sequence length %d,  number of class %d, vocab size %d' % (seq_length, num_class, len(vocab)))
+        print('sequence length %d,  number of class %d, vocab size %d' % (seq_length, num_class, voc_size))
         
-        cnn = TextCNN(seq_length, num_class, len(vocab), 128, [3,4,5], 128)
+        cnn = TextCNN(seq_length, num_class, voc_size, 64, [3,4,5], 64)
 
         global_step = tf.Variable(0, name='global_step', trainable=False)
         optimizer = tf.train.AdamOptimizer(1e-3)
@@ -79,6 +132,7 @@ def train():
             }
 
             _, step, loss, accuracy = sess.run([train_op, global_step, cnn.loss, cnn.accuracy], feed_dict)
+            #print("TRAIN: step {}, loss {:g}, acc {:g}".format(step, loss, accuracy))
 
         def evaluate(x_batch, y_batch):
             feed_dict = {
@@ -88,31 +142,28 @@ def train():
             }
 
             step, loss, accuracy = sess.run([global_step, cnn.loss, cnn.accuracy], feed_dict)
-            print("step %d, loss %f, acc %f" % (step, loss, accuracy))
+            print("TEST: step %d, loss %f, acc %f" % (step, loss, accuracy))
 
         saver = tf.train.Saver()
         sess.run(tf.global_variables_initializer())
 
-        for epoch  in range(train_epochs):
-            try:
-                nBatch = int( len(input)/batch_size )
-                idx = np.random.permutation(len(input))
+        # Generate batches
+        batches = prep.batch_iter(
+            list(zip(x_train, y_train)), batch_size, num_epochs)
 
-                for i in range(nBatch):
-                    x_batch, y_batch = zip(*input[i*batch_size: (i+1)*batch_size])
-                    train_step(x_batch, y_batch)
+        for batch in batches:
+            x_batch, y_batch = zip(*batch)
+            train_step(x_batch, y_batch)
 
-                    current_step = tf.train.global_step(sess, global_step)
-                    if current_step % 100 == 0:
-                        batch = random.sample(test_input, 64)
-                        x_test, y_test = zip(*batch)
-                        evaluate(x_test, y_test)
-                    if current_step % 1000 == 0:
-                        save_path = saver.save(sess, './textcnn.ckpt')
-                        print('model saved : %s' % save_path)
-            except:
-                print ("Unexpected error:", sys.exc_info()[0])
-                raise
+            current_step = tf.train.global_step(sess, global_step)
+
+            if current_step % 100 == 0:
+                print("\nEvaluation:")
+                evaluate(x_dev, y_dev)
+                print("")
+            if current_step % 1000 == 0:
+                 save_path = saver.save(sess, './textcnn.ckpt')
+                 print('model saved : %s' % save_path)
 
 if __name__ == '__main__':
     train()
