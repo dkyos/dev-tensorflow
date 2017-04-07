@@ -7,26 +7,23 @@ import os
 import time
 import datetime
 # import data_helpers
-import prepare_konlpy_2 as prep
+import prepare_konlpy as prep
 from konlpy.tag import Twitter
-from text_cnn import TextCNN
+from cnn import TextCNN
 from tensorflow.contrib import learn
 import csv
 
 # Parameters
 # ==================================================
 
-# Data Parameters
-# tf.flags.DEFINE_string("positive_data_file", "./data/rt-polaritydata/rt-polarity.pos", "Data source for the positive data.")
-# tf.flags.DEFINE_string("negative_data_file", "./data/rt-polaritydata/rt-polarity.neg", "Data source for the positive data.")
+TEST_FILENAME = 'ratings_test.txt'
+TEST_PICKLE = 'test.pickle'
+VOCAB_PICKLE = 'vocab.pickle'
 
 # Eval Parameters
-tf.flags.DEFINE_integer("batch_size", 50, "Batch Size (default: 64)")
-# tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs/1491527488/checkpoints", "Checkpoint directory from training run")  #149182239
-# tf.flags.DEFINE_string("checkpoint_dir", "./runs/1491097515/checkpoints", "Checkpoint directory from training run")
+tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
+tf.flags.DEFINE_string("checkpoint_dir", "runs/1491539691//checkpoints", "Checkpoint directory from training run")  #149182239
 tf.flags.DEFINE_boolean("eval_train", True, "Evaluate on all training data")
-# tf.flags.DEFINE_boolean("eval_train", False, "Evaluate on all training data")
 
 # Misc Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
@@ -42,37 +39,28 @@ print("")
 
 # CHANGE THIS: Load data. Load your own data here
 if FLAGS.eval_train:
-    # x_raw, y_test = data_helpers.load_data_and_labels(FLAGS.positive_data_file, FLAGS.negative_data_file)
-    # y_test = np.argmax(y_test, axis=1)
+    if os.path.exists(TEST_PICKLE):
+        with open(TEST_PICKLE, 'rb') as f:  # Python 3: open(..., 'rb')
+            test_docs, y_test = pickle.load(f)
+    else:
+        # x_raw, y_test = data_helpers.load_data_and_labels(FLAGS.positive_data_file, FLAGS.negative_data_file)
+        # y_test = np.argmax(y_test, axis=1)
 
-    # Load data
-    print("Loading data...")
+        # Load data
+        print("Loading data...")
 
-    test_data = prep.read_data('./ratings_test.txt')
-    # test_data = test_data[1:1000]
+        test_data = prep.read_data(TEST_FILENAME)
     
-    pos_tagger = Twitter()
+        pos_tagger = Twitter()
     
-    start_time = time.time()
-    # train_docs = [prep.tokenize(pos_tagger, row[1]) for row in train_data]
-    # train_labels = np.array([row[2] for row in train_data]).reshape(-1, 1)
-    test_docs = [prep.tokenize(pos_tagger, row[1]) for row in test_data]
-    y_test = [float(row[2]) for row in test_data]
-    # y_test = np.array([float(row[2]) for row in test_data]).reshape(-1, )
-    # y_test = np.array([row[2] for row in test_data]).reshape(-1, 1)
-    print('---- %s seconds elapsed ----' % (time.time() - start_time))
+        start_time = time.time()
+        test_docs = [prep.tokenize(pos_tagger, row[1]) for row in test_data]
+        y_test = [float(row[2]) for row in test_data]
+        print('---- %s seconds elapsed ----' % (time.time() - start_time))
     
-    # Saving the objects:
-    with open('test.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([test_docs, y_test], f)
-
-    ######################################################
-    #with open('test.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
-    #    test_docs, y_test = pickle.load(f)
-
-    # test_docs = test_docs[1:10000]
-    # y_test = y_test[1:10000]
-
+        # Saving the objects:
+        with open(TEST_PICKLE, 'wb') as f:  # Python 3: open(..., 'wb')
+            pickle.dump([test_docs, y_test], f)
 
     y_test = prep.labeller(y_test)
     y_test = np.argmax(y_test, axis=1)
@@ -89,7 +77,7 @@ else:
 # vocab_processor = learn.preprocessing.VocabularyProcessor.restore(vocab_path)
 # x_test = np.array(list(vocab_processor.transform(x_raw)))
 
-with open('vocab.pickle', 'rb') as f:  # Python 3: open(..., 'rb')
+with open(VOCAB_PICKLE, 'rb') as f:  # Python 3: open(..., 'rb')
     voc, voc_inv = pickle.load(f)
 
 # Build vocabulary
@@ -112,8 +100,8 @@ with graph.as_default():
         saver.restore(sess, checkpoint_file)
 
         # Get the placeholders from the graph by name
-        input_x = graph.get_operation_by_name("input_x").outputs[0]
-        # input_y = graph.get_operation_by_name("input_y").outputs[0]
+        input = graph.get_operation_by_name("input").outputs[0]
+        # label = graph.get_operation_by_name("label").outputs[0]
         dropout_keep_prob = graph.get_operation_by_name("dropout_keep_prob").outputs[0]
 
         # Tensors we want to evaluate
@@ -126,7 +114,7 @@ with graph.as_default():
         all_predictions = []
 
         for x_test_batch in batches:
-            batch_predictions = sess.run(predictions, {input_x: x_test_batch, dropout_keep_prob: 1.0})
+            batch_predictions = sess.run(predictions, {input: x_test_batch, dropout_keep_prob: 1.0})
             all_predictions = np.concatenate([all_predictions, batch_predictions])
 
 # Print accuracy if y_test is defined
@@ -141,3 +129,4 @@ out_path = os.path.join(FLAGS.checkpoint_dir, "..", "prediction.csv")
 print("Saving evaluation to {0}".format(out_path))
 with open(out_path, 'w', encoding='utf-8') as f:
     csv.writer(f).writerows(predictions_human_readable)
+

@@ -17,7 +17,8 @@ from tensorflow.contrib import learn
 # Parameters
 
 TRAIN_FILENAME = 'ratings_train.txt'
-TRAIN_PICKLE= 'pickle.data'
+TRAIN_PICKLE = 'train.pickle'
+VOCAB_PICKLE = 'vocab.pickle'
 
 # Data loading params
 tf.flags.DEFINE_float("dev_sample_percentage", .1, "Percentage of the training data to use for validation")
@@ -73,16 +74,12 @@ train_docs_p = prep.pad_sentences(train_docs)
 voc, voc_inv = prep.build_vocab(train_docs_p)
 
 # Write vocabulary
-with open('vocab.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
+with open(VOCAB_PICKLE, 'wb') as f:  # Python 3: open(..., 'wb')
     pickle.dump([voc, voc_inv], f)
 
 x, y = prep.build_input_data(train_docs_p, train_labels, voc)
 #print(x)
 #print(y)
-
-# Write vocabulary
-with open('vocab.pickle', 'wb') as f:  # Python 3: open(..., 'wb')
-    pickle.dump([voc, voc_inv], f)
 
 # Randomly shuffle data
 np.random.seed(10)
