@@ -2,7 +2,8 @@ import numpy as np
 import tensorflow as tf
 
 class TextCNN(object):
-    def __init__(self, sequence_length, num_classes, vocab_size, embedding_size, filter_sizes, num_filters):
+    def __init__(self, sequence_length, num_classes, vocab_size,
+        embedding_size, filter_sizes, num_filters, l2_reg_lambda):
         # input,  dropout
         self.input = tf.placeholder(tf.int32, [None, sequence_length], name='input')
         self.label = tf.placeholder(tf.float32, [None, num_classes], name='label')
@@ -62,7 +63,7 @@ class TextCNN(object):
         # Calculate Mean cross-entropy loss
         with tf.name_scope('loss'):
             losses = tf.nn.softmax_cross_entropy_with_logits(labels=self.label, logits=self.scores)
-            self.loss = tf.reduce_mean(losses) + (0.1 * l2_loss)
+            self.loss = tf.reduce_mean(losses) + (l2_reg_lambda * l2_loss)
 
         with tf.name_scope('accuracy'):
             correct_predictions = tf.equal(self.predictions, tf.argmax(self.label, 1))

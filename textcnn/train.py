@@ -32,8 +32,8 @@ tf.flags.DEFINE_float("l2_reg_lambda", 0.0, "L2 regularization lambda (default: 
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")   # success : 64
 tf.flags.DEFINE_integer("num_epochs", 10, "Number of training epochs (default: 200)")   # success : 200
 tf.flags.DEFINE_integer("evaluate_every", 100, "Evaluate model on dev set after this many steps (default: 100)")
-tf.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps (default: 100)")
-tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store (default: 5)")
+tf.flags.DEFINE_integer("checkpoint_every", 500, "Save model after this many steps (default: 100)")
+tf.flags.DEFINE_integer("num_checkpoints", 20, "Number of checkpoints to store (default: 5)")
 # Misc Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
@@ -108,7 +108,11 @@ with tf.Session(config=session_conf) as sess:
     print('initialize cnn filter')
     print('sequence length %d,  number of class %d, vocab size %d' % (seq_length, num_class, voc_size))
         
-    cnn = TextCNN(seq_length, num_class, voc_size, 64, [3,4,5], 64)
+    cnn = TextCNN(seq_length, num_class, voc_size,
+        FLAGS.embedding_dim,
+        list(map(int, FLAGS.filter_sizes.split(","))),
+        FLAGS.num_filters,
+        FLAGS.l2_reg_lambda)
 
     global_step = tf.Variable(0, name='global_step', trainable=False)
     optimizer = tf.train.AdamOptimizer(1e-3)
@@ -149,13 +153,12 @@ with tf.Session(config=session_conf) as sess:
     checkpoint_prefix = os.path.join(checkpoint_dir, "model")
     if not os.path.exists(checkpoint_dir):
         os.makedirs(checkpoint_dir)
-    saver = tf.train.Saver(tf.global_variables(), max_to_keep=FLAGS.num_checkpoints)
 
     def train_step(x_batch, y_batch):
         feed_dict = {
             cnn.input : x_batch,
             cnn.label : y_batch,
-            cnn.dropout_keep_prob : 0.5
+            cnn.dropout_keep_prob : FLAGS.dropout_keep_prob
         }
         _, step, summaries, loss, accuracy = sess.run(
             [train_op, global_step, train_summary_op, cnn.loss, cnn.accuracy], feed_dict)
@@ -177,8 +180,9 @@ with tf.Session(config=session_conf) as sess:
         if writer:
             writer.add_summary(summaries, step)
 
-    saver = tf.train.Saver()
     sess.run(tf.global_variables_initializer())
+
+    saver = tf.train.Saver(max_to_keep=FLAGS.num_checkpoints)
 
     # Generate batches
     batches = prep.batch_iter(list(zip(x_train, y_train)), FLAGS.batch_size, FLAGS.num_epochs)

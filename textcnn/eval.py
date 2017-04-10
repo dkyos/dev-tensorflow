@@ -22,7 +22,7 @@ VOCAB_PICKLE = 'vocab.pickle'
 
 # Eval Parameters
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
-tf.flags.DEFINE_string("checkpoint_dir", "runs/1491539691//checkpoints", "Checkpoint directory from training run")  #149182239
+tf.flags.DEFINE_string("checkpoint_dir", "runs/1491539691/checkpoints", "Checkpoint directory from training run") 
 tf.flags.DEFINE_boolean("eval_train", True, "Evaluate on all training data")
 
 # Misc Parameters
@@ -43,9 +43,6 @@ if FLAGS.eval_train:
         with open(TEST_PICKLE, 'rb') as f:  # Python 3: open(..., 'rb')
             test_docs, y_test = pickle.load(f)
     else:
-        # x_raw, y_test = data_helpers.load_data_and_labels(FLAGS.positive_data_file, FLAGS.negative_data_file)
-        # y_test = np.argmax(y_test, axis=1)
-
         # Load data
         print("Loading data...")
 
@@ -72,15 +69,9 @@ else:
     y_test = [1, 0]
 
 # Map data into vocabulary
-
-# vocab_path = os.path.join(FLAGS.checkpoint_dir, "..", "vocab")
-# vocab_processor = learn.preprocessing.VocabularyProcessor.restore(vocab_path)
-# x_test = np.array(list(vocab_processor.transform(x_raw)))
-
 with open(VOCAB_PICKLE, 'rb') as f:  # Python 3: open(..., 'rb')
     voc, voc_inv = pickle.load(f)
-
-# Build vocabulary
+    # Build vocabulary
     x_test = prep.build_test_data(x_raw, voc)
 
 print("\nEvaluating...\n")
