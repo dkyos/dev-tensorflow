@@ -1,94 +1,111 @@
 #!/usr/bin/env python
 
-#Inspired by https://github.com/aymericdamien/TensorFlow-Examples/blob/master/examples/3%20-%20Neural%20Networks/recurrent_network.py
+'''
+A Recurrent Neural Network (LSTM) implementation example using TensorFlow library.
+This example is using the MNIST database of handwritten digits (http://yann.lecun.com/exdb/mnist/)
+Long Short Term Memory paper: http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf
+
+Author: Aymeric Damien
+Project: https://github.com/aymericdamien/TensorFlow-Examples/
+'''
+
+from __future__ import print_function
+
 import tensorflow as tf
-#from tensorflow.models.rnn import rnn, rnn_cell
+from tensorflow.contrib import rnn
 
-import numpy as np
+# Import MNIST data
 from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
 
-# configuration
-#                        O * W + b -> 10 labels for each image, O[? 28], W[28 10], B[10]
-#                       ^ (O: output 28 vec from 28 vec input)
-#                       |
-#      +-+  +-+       +--+
-#      |1|->|2|-> ... |28| time_step_size = 28
-#      +-+  +-+       +--+
-#       ^    ^    ...  ^
-#       |    |         |
-# img1:[28] [28]  ... [28]
-# img2:[28] [28]  ... [28]
-# img3:[28] [28]  ... [28]
-# ...
-# img128 or img256 (batch_size or test_size 256)
-#      each input size = input_vec_size=lstm_size=28
+'''
+To classify images using a recurrent neural network, we consider every image
+row as a sequence of pixels. Because MNIST image shape is 28*28px, we will then
+handle 28 sequences of 28 steps for every sample.
+'''
 
-# configuration variables
-input_vec_size = lstm_size = 28
-time_step_size = 28
-
+# Parameters
+learning_rate = 0.001
+training_iters = 100000
 batch_size = 128
-test_size = 256
+display_step = 10
 
-def init_weights(shape):
-    return tf.Variable(tf.random_normal(shape, stddev=0.01))
+# Network Parameters
+n_input = 28 # MNIST data input (img shape: 28*28)
+n_steps = 28 # timesteps
+n_hidden = 128 # hidden layer num of features
+n_classes = 10 # MNIST total classes (0-9 digits)
+
+# tf Graph input
+x = tf.placeholder("float", [None, n_steps, n_input])
+y = tf.placeholder("float", [None, n_classes])
+
+# Define weights
+weights = {
+    'out': tf.Variable(tf.random_normal([n_hidden, n_classes]))
+}
+biases = {
+    'out': tf.Variable(tf.random_normal([n_classes]))
+}
 
 
-def model(X, W, B, init_state, lstm_size):
-    # X, input shape: (batch_size, input_vec_size, time_step_size)
-    XT = tf.transpose(X, [1, 0, 2])  # permute time_step_size and batch_size
-    # XT shape: (input_vec_size, batch_szie, time_step_size)
-    XR = tf.reshape(XT, [-1, lstm_size]) # each row has input for each lstm cell (lstm_size)
-    # XR shape: (input vec_size, batch_size)
-    X_split = tf.split(XR, time_step_size, 0) # split them to time_step_size (28 arrays)
-    # Each array shape: (batch_size, input_vec_size)
+def RNN(x, weights, biases):
 
-    # Make lstm with lstm_size (each input vector size)
-    lstm =  tf.contrib.rnn.BasicLSTMCell(lstm_size, forget_bias=1.0)
+    # Prepare data shape to match `rnn` function requirements
+    # Current data input shape: (batch_size, n_steps, n_input)
+    # Required shape: 'n_steps' tensors list of shape (batch_size, n_input)
 
-    # Get lstm cell output, time_step_size (28) arrays with lstm_size output: (batch_size, lstm_size)
-    outputs, states = tf.nn.dynamic_rnn(lstm, X_split, initial_state=init_state)
+    # Unstack to get a list of 'n_steps' tensors of shape (batch_size, n_input)
+    x = tf.unstack(x, n_steps, 1)
 
-    # Linear activation
-    # Get the last output
-    return tf.matmul(outputs[-1], W) + B, lstm.state_size # State size to initialize the stat
+    # Define a lstm cell with tensorflow
+    lstm_cell = rnn.BasicLSTMCell(n_hidden, forget_bias=1.0)
 
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-trX, trY, teX, teY = mnist.train.images, mnist.train.labels, mnist.test.images, mnist.test.labels
-trX = trX.reshape(-1, 28, 28)
-teX = teX.reshape(-1, 28, 28)
+    # Get lstm cell output
+    outputs, states = rnn.static_rnn(lstm_cell, x, dtype=tf.float32)
 
-# Tensorflow LSTM cell requires 2x n_hidden length (state & cell)
-init_state = tf.placeholder("float", [None, 2*lstm_size])
+    # Linear activation, using rnn inner loop last output
+    return tf.matmul(outputs[-1], weights['out']) + biases['out']
 
-X = tf.placeholder("float", [None, 28, 28])
-Y = tf.placeholder("float", [None, 10])
+pred = RNN(x, weights, biases)
 
-# get lstm_size and output 10 labels
-W = init_weights([lstm_size, 10])
-B = init_weights([10])
+# Define loss and optimizer
+cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=pred, labels=y))
+optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(cost)
 
-py_x, state_size = model(X, W, B, init_state, lstm_size)
+# Evaluate model
+correct_pred = tf.equal(tf.argmax(pred,1), tf.argmax(y,1))
+accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=py_x, labels=Y))
-train_op = tf.train.RMSPropOptimizer(0.001, 0.9).minimize(cost)
-predict_op = tf.argmax(py_x, 1)
+# Initializing the variables
+init = tf.global_variables_initializer()
 
-# Launch the graph in a session
+# Launch the graph
 with tf.Session() as sess:
-    # you need to initialize all variables
-    tf.global_variables_initializer().run()
+    sess.run(init)
+    step = 1
+    # Keep training until reach max iterations
+    while step * batch_size < training_iters:
+        batch_x, batch_y = mnist.train.next_batch(batch_size)
+        # Reshape data to get 28 seq of 28 elements
+        batch_x = batch_x.reshape((batch_size, n_steps, n_input))
+        # Run optimization op (backprop)
+        sess.run(optimizer, feed_dict={x: batch_x, y: batch_y})
+        if step % display_step == 0:
+            # Calculate batch accuracy
+            acc = sess.run(accuracy, feed_dict={x: batch_x, y: batch_y})
+            # Calculate batch loss
+            loss = sess.run(cost, feed_dict={x: batch_x, y: batch_y})
+            print("Iter " + str(step*batch_size) + ", Minibatch Loss= " + \
+                  "{:.6f}".format(loss) + ", Training Accuracy= " + \
+                  "{:.5f}".format(acc))
+        step += 1
+    print("Optimization Finished!")
 
-    for i in range(100):
-        for start, end in zip(range(0, len(trX), batch_size), range(batch_size, len(trX), batch_size)):
-            sess.run(train_op, feed_dict={X: trX[start:end], Y: trY[start:end],
-                                          init_state: np.zeros((batch_size, state_size))})
-
-        test_indices = np.arange(len(teX))  # Get A Test Batch
-        np.random.shuffle(test_indices)
-        test_indices = test_indices[0:test_size]
-
-        print (i, np.mean(np.argmax(teY[test_indices], axis=1) ==
-                         sess.run(predict_op, feed_dict={X: teX[test_indices],
-                                                         Y: teY[test_indices],
-                                                         init_state: np.zeros((test_size, state_size))})))
+    # Calculate accuracy for 128 mnist test images
+    #test_len = int(len(mnist.test.images)/10)
+    test_len = len(mnist.test.images)
+    test_data = mnist.test.images[:test_len].reshape((-1, n_steps, n_input))
+    test_label = mnist.test.labels[:test_len]
+    print("Testing Accuracy:", \
+        sess.run(accuracy, feed_dict={x: test_data, y: test_label}))
