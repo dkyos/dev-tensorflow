@@ -34,7 +34,7 @@ from lstm_predictior import generate_data, lstm_model
 # - BATCH_SIZE: 배치 학습 크기
 # - PRINT_STEPS: 학습 과정 중간 출력 단계 (전체의 1% 해당하는 구간마다 출력)
 
-LOG_DIR = 'resources/logs/'
+LOG_DIR = 'resources/sin_logs/'
 TIMESTEPS = 1
 RNN_LAYERS = [{'num_units': 5}]
 #DENSE_LAYERS = [10, 10]
