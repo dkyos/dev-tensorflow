@@ -37,8 +37,7 @@ from lstm_predictior import generate_data, lstm_model
 LOG_DIR = 'resources/sin_logs/'
 TIMESTEPS = 1
 RNN_LAYERS = [{'num_units': 5}]
-#DENSE_LAYERS = [10, 10]
-DENSE_LAYERS = None
+DENSE_LAYERS = [10, 10]
 TRAINING_STEPS = 100
 #BATCH_SIZE = 100
 BATCH_SIZE = 10

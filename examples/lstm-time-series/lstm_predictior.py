@@ -74,7 +74,7 @@ def generate_data(ftn, x, time_steps, seperate=False):
 
 
 def lstm_model(time_steps, rnn_layers, dense_layers=None, learning_rate=0.1, optimizer='Adagrad'):
-    print(time_steps)
+    print("[LSTM Model] Time steps: %d" % time_steps)
     #exit(0)
     """
         Creates a deep model based on:
