@@ -18,6 +18,8 @@ import pandas as pd
 import tensorflow as tf
 from matplotlib import pyplot as plt
 
+tf.logging.set_verbosity(tf.logging.ERROR)
+
 from tensorflow.contrib import learn
 from tensorflow.contrib.learn.python import SKCompat #
 
@@ -93,6 +95,11 @@ print(y['test'].shape)
 predicted = regressor.predict(X['test']) # ,as_iterable=False)
 score = mean_squared_error(predicted, y['test'])
 print ("MSE: %f" % score)
+
+#idx=0
+#for pred, label in zip(predicted, y['test']):
+#    print("%d  Predction:%.3f Label:%.3f => %.3f " % (idx, pred, label, pred/label) )
+#    idx=idx+1
 
 plot_predicted, = plt.plot(predicted, label='predicted')
 plot_test, = plt.plot(y['test'], label='test')
