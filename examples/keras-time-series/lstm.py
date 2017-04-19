@@ -11,11 +11,11 @@ from keras.models import Sequential
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' #Hide messy TensorFlow warnings
 warnings.filterwarnings("ignore") #Hide messy Numpy warnings
 
-def load_data(filename, seq_len, normalise_window):
+def load_data(filename, time_steps, normalise_window):
     f = open(filename, 'rb').read()
     data = f.decode().split('\n')
 
-    sequence_length = seq_len + 1
+    sequence_length = time_steps + 1
     result = []
     for index in range(len(data) - sequence_length):
         result.append(data[index: index + sequence_length])
@@ -54,19 +54,20 @@ def build_model(layers):
         input_dim=layers[0],
         output_dim=layers[1],
         return_sequences=True))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.1))
 
     model.add(LSTM(
         layers[2],
         return_sequences=False))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.1))
 
     model.add(Dense(
         output_dim=layers[3]))
     model.add(Activation("linear"))
 
     start = time.time()
-    model.compile(loss="mse", optimizer="rmsprop")
+    #model.compile(loss="mse", optimizer="rmsprop")
+    model.compile(loss="mse", optimizer="adam")
     print("> Compilation Time : ", time.time() - start)
 
     model.summary()

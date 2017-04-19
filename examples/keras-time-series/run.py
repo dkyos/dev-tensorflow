@@ -3,6 +3,7 @@ import time
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import keras.callbacks as cb
 
 def plot_results(predicted_data, true_data):
     fig = plt.figure(facecolor='white')
@@ -26,33 +27,37 @@ def plot_results_multiple(predicted_data, true_data, prediction_len):
 #Main Run Thread
 if __name__=='__main__':
     global_start_time = time.time()
-    epochs  = 10
-    seq_len = 50
+    epochs  = 5
+    time_steps = 10
 
     np.random.seed(777)
     tf.set_random_seed(777)
 
     print('> Loading data... ')
 
-    #X_train, y_train, X_test, y_test = lstm.load_data('sp500.csv', seq_len, True)
-    #X_train, y_train, X_test, y_test = lstm.load_data('sinwave.csv', seq_len, False)
-    X_train, y_train, X_test, y_test = lstm.load_data('sp500.csv', seq_len, True)
+    #X_train, y_train, X_test, y_test = lstm.load_data('sp500.csv', time_steps, True)
+    X_train, y_train, X_test, y_test = lstm.load_data('sinwave.csv', time_steps, False)
+    #X_train, y_train, X_test, y_test = lstm.load_data('sp500.csv', time_steps, True)
 
     print('> Data Loaded. Compiling...')
 
-    model = lstm.build_model([1, 50, 100, 1])
+    model = lstm.build_model([1, 64, 128, 1])
+
+    tbCallBack = cb.TensorBoard(log_dir='./log', histogram_freq=0, write_graph=True, write_images=True)
 
     model.fit(
         X_train,
         y_train,
-        batch_size=512,
+        batch_size=128,
         nb_epoch=epochs,
-        validation_split=0.05)
+        validation_split=0.05,
+        callbacks=[tbCallBack]
+        )
 
-    predictions = lstm.predict_sequences_multiple(model, X_test, seq_len, 50)
-    #predicted = lstm.predict_sequence_full(model, X_test, seq_len)
+    #predictions = lstm.predict_sequences_multiple(model, X_test, time_steps, 50)
+    #predicted = lstm.predict_sequence_full(model, X_test, time_steps)
     predicted = lstm.predict_point_by_point(model, X_test)
 
     print('Training duration (s) : ', time.time() - global_start_time)
-    plot_results_multiple(predictions, y_test, 50)
-    #plot_results(predicted, y_test)
+    #plot_results_multiple(predictions, y_test, 50)
+    plot_results(predicted, y_test)
