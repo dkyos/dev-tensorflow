@@ -65,6 +65,8 @@ def build_model(layers):
     start = time.time()
     model.compile(loss="mse", optimizer="rmsprop")
     print("> Compilation Time : ", time.time() - start)
+
+    model.summary()
     return model
 
 def predict_point_by_point(model, data):
