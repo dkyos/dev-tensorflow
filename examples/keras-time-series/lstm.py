@@ -3,6 +3,7 @@ import time
 import warnings
 import numpy as np
 from numpy import newaxis
+from sklearn.preprocessing import MinMaxScaler
 from keras.layers.core import Dense, Activation, Dropout
 from keras.layers.recurrent import LSTM
 from keras.models import Sequential
@@ -21,6 +22,8 @@ def load_data(filename, seq_len, normalise_window):
     
     if normalise_window:
         result = normalise_windows(result)
+        #scaler = MinMaxScaler(feature_range=(0,1))
+        #result = scaler.fit_transform(result)
 
     result = np.array(result)
 
