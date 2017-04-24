@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
-# http://machinelearningmastery.com/time-series-prediction-lstm-recurrent-neural-networks-python-keras/
 import os
 import numpy as np
+from numpy import newaxis
 import matplotlib.pyplot as plt
+
+import tensorflow as tf
 
 from sklearn.preprocessing import MinMaxScaler
 from keras.layers.core import Dense, Activation, Dropout
@@ -13,11 +15,13 @@ import keras.callbacks as cb
 from keras.callbacks import EarlyStopping
 from keras.utils.vis_utils import plot_model
 
-time_steps = seq_length = 7
-data_dim = 5
+time_steps = seq_length = 100
+data_dim = 4
+
+tf.set_random_seed(777)  # reproducibility
 
 # Open,High,Low,Close,Volume
-xy = np.loadtxt('dk-data-02-stock_daily.csv', delimiter=',')
+xy = np.loadtxt('dk2-data-02-stock_daily.csv', delimiter=',')
 #xy = xy[::-1]  # reverse order (chronically ordered)
 
 # very important. It does not work without it.
@@ -44,11 +48,51 @@ trainX, testX = np.array(dataX[0:train_size]), np.array(
 trainY, testY = np.array(dataY[0:train_size]), np.array(
     dataY[train_size:len(dataY)])
 
+def plot_results(predicted_data, true_data):
+    fig = plt.figure(facecolor='white')
+    ax = fig.add_subplot(111)
+    ax.plot(true_data, label='True Data')
+    plt.plot(predicted_data, label='Prediction')
+    plt.legend()
+    plt.show()
+
+def predict_point_by_point(model, data):
+    #Predict each timestep given the last sequence of true data, in effect only predicting 1 step ahead each time
+    predicted = model.predict(data)
+    #predicted = np.reshape(predicted, (predicted.size,))
+    return predicted
+
+def plot_results_multiple(predicted_data, true_data, prediction_len):
+    fig = plt.figure(facecolor='white')
+    ax = fig.add_subplot(111)
+    ax.plot(true_data, label='True Data')
+    #Pad the list of predictions to shift it in the graph to it's correct start
+    for i, data in enumerate(predicted_data):
+        padding = [None for p in range(i * prediction_len)]
+        plt.plot(padding + data, label='Prediction')
+        plt.legend()
+    plt.show()
+
+def predict_sequences_multiple(model, data, window_size, prediction_len):
+    #Predict sequence of 50 steps before shifting prediction run forward by 50 steps
+    prediction_seqs = []
+    for i in range(int(len(data)/prediction_len)):
+        curr_frame = data[i*prediction_len]
+        predicted = []
+        for j in range(prediction_len):
+            predicted.append(model.predict(curr_frame[newaxis,:,:])[0,0])
+            curr_frame = curr_frame[1:]
+            curr_frame = np.insert(curr_frame, [window_size-1], predicted[-1], axis=0)
+        prediction_seqs.append(predicted)
+    return prediction_seqs
+
+
+
 # Keras Model for RNN:LSTM
 model = Sequential()
-model.add(LSTM(input_dim=data_dim, output_dim=64, return_sequences=True))
+model.add(LSTM(input_dim=data_dim, output_dim=50, return_sequences=True))
 model.add(Dropout(0.1))
-model.add(LSTM(128, return_sequences=False))
+model.add(LSTM(100, return_sequences=False))
 model.add(Dropout(0.1))
 model.add(Dense(output_dim=1))
 model.add(Activation("linear"))
@@ -66,16 +110,20 @@ callback_list= [
 # Train
 model.fit( trainX, trainY,
            batch_size=128,
-           epochs=100,
+           epochs=10,
            validation_split=0.1,
            callbacks=callback_list)
 
 # make predictions
-test_predict = model.predict(testX)
+test_predict = predict_point_by_point(model, testX)
+plot_results(test_predict, testY)
+
+predictions = predict_sequences_multiple(model, testX, time_steps, 7)
+plot_results_multiple(predictions, testY, 7)
 
 # inverse values
-# test_predict = scaler.transform(testPredict)
-# testY = scaler.transform(testY)
+#test_predict = scaler.transform(test_predict)
+#testY = scaler.transform(testY)
 
 # predictions
 y_o = 0; p_o = 0
@@ -101,8 +149,3 @@ for (y, p) in zip(testY.ravel().tolist()[:], test_predict.ravel().tolist()[:]):
     p_o = p 
         
 print("(%d/%d, %.2f)" % (success, iter, success/iter))
-
-# print(test_predict)
-plt.plot(testY)
-plt.plot(test_predict)
-plt.show()
