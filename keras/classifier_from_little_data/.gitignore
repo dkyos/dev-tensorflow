@@ -1,0 +1,8 @@
+
+bottleneck_features_train.npy
+bottleneck_features_validation.npy
+/data
+first_try.h5
+no_generator_first_try.h5
+vgg16_weights.h5
+
