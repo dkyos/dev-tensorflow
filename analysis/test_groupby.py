@@ -36,9 +36,13 @@ print ("===============")
 table1 = pd.read_csv(D_ORIGIN_FILE)
 print (table1)
 
-print(table1.groupby('c').size())
-print(table1.groupby('d').size())
-print(table1.groupby('j').size())
-print(table1.groupby('n').size())
+print( table1.groupby('f').size().order(ascending=False) )
+
+#print(table1.groupby('d').size())
+#print(table1.groupby('j').size())
+#print(table1.groupby('n').size())
+
+
+#print ( table1.sort(['f'],ascending=False).groupby('f').head(3) )
 
 

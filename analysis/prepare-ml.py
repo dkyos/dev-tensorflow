@@ -44,8 +44,8 @@ df = pd.read_csv(url, delimiter=',')
 for row in df.itertuples(index=True, name='Pandas'):
 
     product = str(getattr(row, "f")).replace(" ", "")
-    if product != "데스크톱컴퓨터": 
-        continue;
+    #if product != "데스크톱컴퓨터": 
+    #    continue;
 
     start = int(float(getattr(row, "k"))/10000);
     due = int(getattr(row, "n"));
