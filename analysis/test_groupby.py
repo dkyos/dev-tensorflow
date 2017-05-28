@@ -31,18 +31,42 @@ print('sklearn: {}'.format(sklearn.__version__))
 ## files
 D_ORIGIN_FILE  = "02-D_origin.csv";
 
-
+#############################
+## read csv with pandas api
 print ("===============")
-table1 = pd.read_csv(D_ORIGIN_FILE)
-print (table1)
+#table1 = pd.read_csv(D_ORIGIN_FILE,header=None)
+table1 = pd.read_csv(D_ORIGIN_FILE, encoding='utf-8')
+print (table1.head(10))
 
-print( table1.groupby('f').size().order(ascending=False) )
+#############################
+## groupby top 10
+print( table1.groupby('f').size().sort_values(ascending=False).head(10) )
+print( table1.groupby('j').size().sort_values(ascending=False).head(10) )
+print( table1.groupby('n').size() )
+print( table1.groupby('u').size().sort_values(ascending=False).head(10) )
+print( table1.groupby('y').size().sort_values(ascending=False).head(10) )
+
+#############################
+## show korean in plot
+#print (matplotlib.rcParams["font.family"])
+import matplotlib.font_manager as fm
+#font_location = "/usr/share/fonts/truetype/nanum/NanumGothic_Coding.ttf"
+font_location = "/usr/share/fonts/truetype/nanum/NanumMyeongjoBold.ttf"
+font_name = fm.FontProperties(fname=font_location).get_name()
+matplotlib.rc('font', family=font_name)
+matplotlib.rcParams.update({'font.weight': 'bold'})
+#matplotlib.rcParams.update({'font.size': 14})
+
+#############################
+## show plot
+table1.groupby('f').size().sort_values(ascending=False).head(10).plot(kind='bar',stacked=True)
+plt.show()
+
+#table1.groupby('d').size().sort_values(ascending=False).head(10).plot(kind='bar',stacked=True)
+#plt.show()
 
 #print(table1.groupby('d').size())
 #print(table1.groupby('j').size())
 #print(table1.groupby('n').size())
-
-
-#print ( table1.sort(['f'],ascending=False).groupby('f').head(3) )
 
 
