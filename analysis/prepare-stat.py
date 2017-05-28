@@ -1,30 +1,14 @@
 #!/usr/bin/env python
 
-# Check the versions of libraries
-
+### libraries
 import csv
-
-# Python version
 import sys
-#print('Python: {}'.format(sys.version))
-# scipy
 import scipy
-#print('scipy: {}'.format(scipy.__version__))
-# numpy
 import numpy
-#print('numpy: {}'.format(numpy.__version__))
-# matplotlib
 import matplotlib
-#print('matplotlib: {}'.format(matplotlib.__version__))
-# pandas
-import pandas
-#print('pandas: {}'.format(pandas.__version__))
-# scikit-learn
 import sklearn
-#print('sklearn: {}'.format(sklearn.__version__))
-
-# Load libraries
 import pandas
+import pandas as pd
 from pandas.tools.plotting import scatter_matrix
 import matplotlib.pyplot as plt
 from sklearn import model_selection
@@ -37,62 +21,49 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
+print('Python: {}'.format(sys.version))
+print('scipy: {}'.format(scipy.__version__))
+print('numpy: {}'.format(numpy.__version__))
+print('matplotlib: {}'.format(matplotlib.__version__))
+print('pandas: {}'.format(pandas.__version__))
+print('sklearn: {}'.format(sklearn.__version__))
 
-# Load libraries
-import pandas
-from pandas.tools.plotting import scatter_matrix
-import matplotlib.pyplot as plt
-from sklearn import model_selection
-from sklearn.metrics import classification_report
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import accuracy_score
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.naive_bayes import GaussianNB
-from sklearn.svm import SVC
-
-D_ORIGIN  = "02-D_origin.csv";
+D_ORIGIN_FILE  = "02-D_origin.csv";
 D_TOTAL   = "02-D_totoal.csv";
 D_EXPIRED = "02-D_expired.csv";
-
-fr = open(D_ORIGIN, "r");
-read = csv.reader(fr);
 
 fw_total = open(D_TOTAL, "w");
 fw_expired = open(D_EXPIRED, "w");
 writer_total = csv.writer(fw_total, delimiter=',');
 writer_expired = csv.writer(fw_expired, delimiter=',');
 
-row_num = 0;
-for row in read:
+# Load dataset
+url = D_ORIGIN_FILE;
+df = pd.read_csv(url, delimiter=',')
 
-    #product = "%s:%s" % (row[5], row[7])
-    product = "%s" % (row[5])
-    product.replace(" ", "")
+for row in df.itertuples(index=True, name='Pandas'):
 
-    start = int(float(row[10])/10000);
-    due = int(row[13]);
+    product = str(getattr(row, "f")).replace(" ", "")
+    if product != "데스크톱컴퓨터": 
+        continue;
 
-    if row[15]:
-        end  = int(float(row[15])/10000);
+    start = int(float(getattr(row, "k"))/10000);
+    due = int(getattr(row, "n"));
+
+    end_str = str(getattr(row, "p"));
+    if end_str != "nan":
+        end  = int(float(end_str)/10000);
         life = end - start;
     else:
         end = 0;
         life = 0;
 
-    #if product != "데스크톱컴퓨터":
-    #    continue;
-    if product != "LCD패널또는모니터":
-        continue;
-
-    if row[15]:
-        #print ("Expired,%s,%d,%d,%d,%d" % (product, start, end, due,life));
+    if end_str:
+        print ("Expired,%s,%d,%d,%d,%d" % (product, start, end, due,life));
         writer_total.writerow(['Expired', product, start, end, due,life]);
-        writer_expired.writerow([start, due,life]);
+        writer_expired.writerow([start, due, life]);
     else:
-        #print ("Used,%s,%d,%d,%d,%d" % (product, start, end, due, life));
+        print ("Used,%s,%d,%d,%d,%d" % (product, start, end, due, life));
         writer_total.writerow(['Used', product, start, end, due,life]);
 
 fw_total.close()
