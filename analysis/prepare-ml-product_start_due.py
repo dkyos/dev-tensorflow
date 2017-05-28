@@ -44,6 +44,7 @@ df = pd.read_csv(url, delimiter=',')
 for row in df.itertuples(index=True, name='Pandas'):
 
     product = str(getattr(row, "f")).replace(" ", "")
+    type = str(getattr(row, "h")).replace(" ", "")
     #if product != "데스크톱컴퓨터": 
     #    continue;
 
@@ -59,12 +60,12 @@ for row in df.itertuples(index=True, name='Pandas'):
         life = 0;
 
     if end_str:
-        print ("Expired,%s,%d,%d,%d,%d" % (product, start, end, due,life));
-        writer_total.writerow(['Expired', product, start, end, due,life]);
-        writer_expired.writerow([product, start, due, life]);
+        print ("Expired,%s,%s,%d,%d,%d,%d" % (product, type, start, end, due,life));
+        writer_total.writerow(['Expired', product, type, start, end, due,life]);
+        writer_expired.writerow([product, type, start, due, life]);
     else:
-        print ("Used,%s,%d,%d,%d,%d" % (product, start, end, due, life));
-        writer_total.writerow(['Used', product, start, end, due,life]);
+        print ("Used,%s,%s,%d,%d,%d,%d" % (product, type, start, end, due, life));
+        writer_total.writerow(['Used', product, type, start, end, due,life]);
 
 fw_total.close()
 fw_expired.close()
@@ -72,7 +73,7 @@ fw_expired.close()
 # Load dataset
 url = D_EXPIRED;
 #class = life
-names = ['product', 'start', 'due', 'class']
+names = ['product', 'type', 'start', 'due', 'class']
 dataset = pandas.read_csv(url, delimiter=',', names=names)
 
 # shape
@@ -84,6 +85,7 @@ print(dataset.describe())
 # class distribution
 print(dataset.groupby('class').size())
 
+'''
 # box and whisker plots
 #dataset.plot(kind='box', subplots=True, layout=(2,2), sharex=False, sharey=False)
 dataset.plot(kind='box')
@@ -96,20 +98,25 @@ plt.show()
 # scatter plot matrix
 scatter_matrix(dataset)
 plt.show()
+'''
 
 # Split-out validation dataset
 dataset['product'] = dataset['product'].factorize()[0]
-X = dataset.iloc[:, 0:3].values
-Y = dataset.iloc[:, 3].values
+dataset['type'] = dataset['type'].factorize()[0]
+X = dataset.iloc[:, 0:4].values
+Y = dataset.iloc[:, 4].values
 
 # Encodeing Categorical data
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 labelenc = LabelEncoder()
 X[:, 0] = labelenc.fit_transform(X[:, 0])
-#print (X)
+X[:, 1] = labelenc.fit_transform(X[:, 1])
+print (X)
 onehotencoder = OneHotEncoder(categorical_features=[0])
 X = onehotencoder.fit_transform(X).toarray()   
-#print (X)
+onehotencoder = OneHotEncoder(categorical_features=[1])
+X = onehotencoder.fit_transform(X).toarray()   
+print (X)
 
 validation_size = 0.20
 seed = 7
