@@ -73,7 +73,7 @@ fw_expired.close()
 url = D_TOTAL;
 #class = life
 names = ['expired','product', 'start', 'end', 'due', 'life']
-dataset = pandas.read_csv(url, delimiter=',', names=names)
+dataset = pandas.read_csv(url, delimiter='|', names=names)
 
 #for i in range(2000, 2020):
 #    dataset.insert(6, i, 0)
