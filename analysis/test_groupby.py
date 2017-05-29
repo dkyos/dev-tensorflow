@@ -29,22 +29,19 @@ print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
 ## files
-D_ORIGIN_FILE  = "02-D_origin.csv";
+D_ORIGIN_FILE  = "02_20170516_A.csv";
+#D_ORIGIN_FILE  = "02_20170516_G.csv";
 
 #############################
 ## read csv with pandas api
 print ("===============")
-#table1 = pd.read_csv(D_ORIGIN_FILE,header=None)
-table1 = pd.read_csv(D_ORIGIN_FILE, encoding='utf-8')
+table1 = pd.read_csv(D_ORIGIN_FILE, encoding='utf-8', sep='|')
 print (table1.head(10))
 
 #############################
 ## groupby top 10
-print( table1.groupby('f').size().sort_values(ascending=False).head(10) )
-print( table1.groupby('j').size().sort_values(ascending=False).head(10) )
-print( table1.groupby('n').size() )
-print( table1.groupby('u').size().sort_values(ascending=False).head(10) )
-print( table1.groupby('y').size().sort_values(ascending=False).head(10) )
+print( table1.groupby('10품종').size().sort_values(ascending=False).head(10) )
+print( table1.groupby('품명').size().sort_values(ascending=False).head(10) )
 
 #############################
 ## show korean in plot
@@ -59,14 +56,9 @@ matplotlib.rcParams.update({'font.weight': 'bold'})
 
 #############################
 ## show plot
-table1.groupby('f').size().sort_values(ascending=False).head(10).plot(kind='bar',stacked=True)
+table1.groupby('10품종').size().sort_values(ascending=False).head(10).plot(kind='bar',stacked=True)
 plt.show()
 
-#table1.groupby('d').size().sort_values(ascending=False).head(10).plot(kind='bar',stacked=True)
-#plt.show()
-
-#print(table1.groupby('d').size())
-#print(table1.groupby('j').size())
-#print(table1.groupby('n').size())
-
+table1.groupby('품명').size().sort_values(ascending=False).head(10).plot(kind='bar',stacked=True)
+plt.show()
 
