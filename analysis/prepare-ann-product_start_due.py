@@ -28,30 +28,29 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-D_ORIGIN_FILE  = "02-D_origin.csv";
+D_ORIGIN_FILE  = "02_20170516_G.csv";
 D_TOTAL   = "02-D_totoal.csv";
 D_EXPIRED = "02-D_expired.csv";
 
 fw_total = open(D_TOTAL, "w");
 fw_expired = open(D_EXPIRED, "w");
-writer_total = csv.writer(fw_total, delimiter=',');
-writer_expired = csv.writer(fw_expired, delimiter=',');
+writer_total = csv.writer(fw_total, delimiter='|');
+writer_expired = csv.writer(fw_expired, delimiter='|');
 
 # Load dataset
 url = D_ORIGIN_FILE;
-df = pd.read_csv(url, delimiter=',')
+df = pd.read_csv(url, sep='|')
 
 for row in df.itertuples(index=True, name='Pandas'):
 
-    product = str(getattr(row, "f")).replace(" ", "")
-    type = str(getattr(row, "h")).replace(" ", "")
+    product = str(getattr(row, "품명")).replace(" ", "")
     #if product != "데스크톱컴퓨터": 
     #    continue;
 
-    start = int(float(getattr(row, "k"))/10000);
-    due = int(getattr(row, "n"));
+    start = int(float(getattr(row, "취득일자"))/10000);
+    due = int(getattr(row, "내용연수"));
 
-    end_str = str(getattr(row, "p"));
+    end_str = str(getattr(row, "처분일자"));
     if end_str != "nan":
         end  = int(float(end_str)/10000);
         life = end - start;
@@ -60,12 +59,12 @@ for row in df.itertuples(index=True, name='Pandas'):
         life = 0;
 
     if end_str != "nan":
-        print ("Expired,%s,%s,%d,%d,%d,%d" % (product, type, start, end, due,life));
-        writer_total.writerow(['Expired', product, type, start, end, due,life]);
-        writer_expired.writerow([product, type, start, due, life]);
+        print ("Expired,%s,%d,%d,%d,%d" % (product, start, end, due,life));
+        writer_total.writerow(['Expired', product, start, end, due,life]);
+        writer_expired.writerow([product, start, due, life]);
     else:
-        print ("Used,%s,%s,%d,%d,%d,%d" % (product, type, start, end, due, life));
-        writer_total.writerow(['Used', product, type, start, end, due,life]);
+        print ("Used,%s,%d,%d,%d,%d" % (product, start, end, due, life));
+        writer_total.writerow(['Used', product, start, end, due,life]);
 
 fw_total.close()
 fw_expired.close()
@@ -73,7 +72,7 @@ fw_expired.close()
 # Load dataset
 url = D_EXPIRED;
 #class = life
-names = ['product', 'type', 'start', 'due', 'class']
+names = ['product', 'start', 'due', 'class']
 dataset = pandas.read_csv(url, delimiter=',', names=names)
 
 # shape
@@ -102,9 +101,8 @@ plt.show()
 
 # Split-out validation dataset
 dataset['product'] = dataset['product'].factorize()[0]
-dataset['type'] = dataset['type'].factorize()[0]
-X = dataset.iloc[:, 0:4].values
-Y = dataset.iloc[:, 4].values
+X = dataset.iloc[:, 0:3].values
+Y = dataset.iloc[:, 3].values
 
 # Encodeing Categorical data
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder

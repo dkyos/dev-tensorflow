@@ -29,8 +29,8 @@ print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
 ## files
-D_ORIGIN_FILE  = "02_20170516_A.csv";
-#D_ORIGIN_FILE  = "02_20170516_G.csv";
+#D_ORIGIN_FILE  = "02_20170516_A.csv";
+D_ORIGIN_FILE  = "02_20170516_G.csv";
 
 #############################
 ## read csv with pandas api
@@ -42,6 +42,10 @@ print (table1.head(10))
 ## groupby top 10
 print( table1.groupby('10품종').size().sort_values(ascending=False).head(10) )
 print( table1.groupby('품명').size().sort_values(ascending=False).head(10) )
+
+print( table1.groupby('취득일자').size().sort_values(ascending=False).head(10) )
+print( table1.groupby('내용연수').size().sort_values(ascending=False).head(10) )
+print( table1.groupby('처분일자').size().sort_values(ascending=False).head(10) )
 
 #############################
 ## show korean in plot

@@ -28,29 +28,29 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-D_ORIGIN_FILE  = "02-D_origin.csv";
+D_ORIGIN_FILE  = "02_20170516_G.csv";
 D_TOTAL   = "02-D_totoal.csv";
 D_EXPIRED = "02-D_expired.csv";
 
 fw_total = open(D_TOTAL, "w");
 fw_expired = open(D_EXPIRED, "w");
-writer_total = csv.writer(fw_total, delimiter=',');
-writer_expired = csv.writer(fw_expired, delimiter=',');
+writer_total = csv.writer(fw_total, delimiter='|');
+writer_expired = csv.writer(fw_expired, delimiter='|');
 
 # Load dataset
 url = D_ORIGIN_FILE;
-df = pd.read_csv(url, delimiter=',')
+df = pd.read_csv(url, delimiter='|')
 
 for row in df.itertuples(index=True, name='Pandas'):
 
-    product = str(getattr(row, "f")).replace(" ", "")
+    product = str(getattr(row, "품명")).replace(" ", "")
     if product != "데스크톱컴퓨터": 
         continue;
 
-    start = int(float(getattr(row, "k"))/10000);
-    due = int(getattr(row, "n"));
+    start = int(float(getattr(row, "취득일자"))/10000);
+    due = int(getattr(row, "내용연수"));
 
-    end_str = str(getattr(row, "p"));
+    end_str = str(getattr(row, "처분일자"));
     if end_str != "nan":
         end  = int(float(end_str)/10000);
         life = end - start;
