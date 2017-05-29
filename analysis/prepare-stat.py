@@ -28,7 +28,7 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-D_ORIGIN_FILE  = "02_20170516_G.csv";
+D_ORIGIN_FILE  = "concat_result.csv";
 D_TOTAL   = "02-D_totoal.csv";
 D_EXPIRED = "02-D_expired.csv";
 
@@ -44,8 +44,8 @@ df = pd.read_csv(url, delimiter='|')
 for row in df.itertuples(index=True, name='Pandas'):
 
     product = str(getattr(row, "품명")).replace(" ", "")
-    if product != "데스크톱컴퓨터": 
-        continue;
+    #if product != "데스크톱컴퓨터": 
+    #    continue;
 
     start = int(float(getattr(row, "취득일자"))/10000);
     due = int(getattr(row, "내용연수"));
@@ -89,22 +89,20 @@ for i, row in enumerate(dataset.values):
 
     if row[2] > 2000:
         start = row[2] - 2000;
+        data_new[start] = data_new[start] + 1; 
     else:
         start = 2000 - 2000;
 
     if row[3] > 2000:
         end = row[3] - 2000;
+        data_del[end] = data_del[end] + 1; 
     else:
         end = 2020 - 2000;
 
     print("index: %d -- %d" % (start, end));
 
-    data_new[start] = data_new[start] + 1; 
-
     for i in range(start, end, 1):
            data_cur[i] = data_cur[i] + 1; 
-
-    data_del[end] = data_del[end] + 1; 
 
     #print(row)
     #expired, product, start, end, due = row
