@@ -6,7 +6,18 @@ import numpy as np
 import matplotlib as plt
 import pandas as pd 
 
-list_iter = iter(["02_20170516_A.csv","02_20170516_G.csv"])
+
+
+list_iter = iter(["02_20170516_A.csv",
+    "02_20170516_B.csv",
+    "02_20170516_C.csv",
+    "02_20170516_D.csv",
+    "02_20170516_E.csv",
+    "02_20170516_F.csv",
+    "02_20170516_G.csv",
+    "02_20170516_H.csv",
+    "02_20170516_I.csv",
+    "02_20170516_J.csv"])
 
 df1 = pd.DataFrame()
 df_concat = pd.DataFrame()
