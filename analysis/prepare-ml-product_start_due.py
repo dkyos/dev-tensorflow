@@ -28,14 +28,14 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-D_ORIGIN_FILE  = "00_lcd_data.csv";
-D_TOTAL   = "02-G_totoal.csv";
-D_EXPIRED = "02-G_expired.csv";
+D_ORIGIN_FILE  = "test.csv";
+D_TRAIN   = "000_train.csv";
+D_PREDICT = "000_predict.csv";
 
-fw_total = open(D_TOTAL, "w");
-fw_expired = open(D_EXPIRED, "w");
-writer_total = csv.writer(fw_total, delimiter='|');
-writer_expired = csv.writer(fw_expired, delimiter='|');
+fw_train = open(D_TRAIN, "w");
+fw_predict = open(D_PREDICT, "w");
+writer_train = csv.writer(fw_train, delimiter='|');
+writer_predict = csv.writer(fw_predict, delimiter='|');
 
 # Load dataset
 url = D_ORIGIN_FILE;
@@ -44,8 +44,8 @@ df = pd.read_csv(url, sep='|')
 for row in df.itertuples(index=True, name='Pandas'):
 
     product = str(getattr(row, "품명")).replace(" ", "")
-    #if product != "데스크톱컴퓨터": 
-    #    continue;
+    if product != "데스크톱컴퓨터": 
+        continue;
 
     start = int(float(getattr(row, "취득일자"))/10000);
     due = int(getattr(row, "내용연수"));
@@ -58,21 +58,23 @@ for row in df.itertuples(index=True, name='Pandas'):
         end = 0;
         life = 0;
 
-    if end_str:
-        print ("Expired,%s,%d,%d,%d,%d" % (product, start, end, due,life));
-        writer_total.writerow(['Expired', product, start, end, due,life]);
-        writer_expired.writerow([product, start, due, life]);
-    else:
-        print ("Used,%s,%d,%d,%d,%d" % (product, start, end, due, life));
-        writer_total.writerow(['Used', product, start, end, due,life]);
+    if end == 0:
+        continue
 
-fw_total.close()
-fw_expired.close()
+    if end <= 2015:
+        #print ("[train datal 2015] %d,%d,%d" % (start, due, life));
+        writer_train.writerow([start, due, life]);
+
+    if end == 2016:
+        #print ("[predict] %d,%d,%d" % (start, due, life));
+        writer_predict.writerow([start, due, life]);
+
+fw_train.close()
+fw_predict.close()
 
 # Load dataset
-url = D_EXPIRED;
-#class = life
-names = ['product', 'start', 'due', 'class']
+url = D_TRAIN;
+names = ['start', 'due', 'class']
 dataset = pandas.read_csv(url, delimiter='|', names=names)
 
 # shape
@@ -100,9 +102,11 @@ plt.show()
 '''
 
 # Split-out validation dataset
-dataset['product'] = dataset['product'].factorize()[0]
-X = dataset.iloc[:, 0:3].values
-Y = dataset.iloc[:, 3].values
+#dataset['product'] = dataset['product'].factorize()[0]
+X = dataset.iloc[:, 0:2].values
+Y = dataset.iloc[:, 2].values
+
+
 
 # Encodeing Categorical data
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -119,7 +123,6 @@ print (X)
 validation_size = 0.20
 seed = 7
 X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(X, Y, test_size=validation_size, random_state=seed)
-
 
 # Test options and evaluation metric
 seed = 7
@@ -160,5 +163,37 @@ knn = DecisionTreeClassifier()
 knn.fit(X_train, Y_train)
 predictions = knn.predict(X_validation)
 print(accuracy_score(Y_validation, predictions))
-print(confusion_matrix(Y_validation, predictions))
-print(classification_report(Y_validation, predictions))
+#print(confusion_matrix(Y_validation, predictions))
+#print(classification_report(Y_validation, predictions))
+
+
+'''
+# Load dataset
+url = D_PREDICT;
+names = ['start', 'due', 'class']
+dataset = pandas.read_csv(url, delimiter='|', names=names)
+
+# Split-out validation dataset
+#dataset['product'] = dataset['product'].factorize()[0]
+X = dataset.iloc[:, 0:2].values
+Y = dataset.iloc[:, 2].values
+
+X[:, 0] = labelenc.fit_transform(X[:, 0])
+X[:, 1] = labelenc.fit_transform(X[:, 1])
+print (X)
+onehotencoder = OneHotEncoder(categorical_features=[0])
+X = onehotencoder.fit_transform(X).toarray()   
+onehotencoder = OneHotEncoder(categorical_features=[1])
+X = onehotencoder.fit_transform(X).toarray()   
+print (X)
+
+predictions = knn.predict(X)
+
+i = 0; j = 0;
+for x, a, b in zip(X, Y, predictions):
+    i = i+1
+    print ("[%d/%d: %2.3f] %d/%d" % (j, i, float(j/i),  a, b))
+    
+    if a == b:
+        j = j+1
+'''
