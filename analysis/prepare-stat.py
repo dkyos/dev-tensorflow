@@ -28,7 +28,7 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-D_ORIGIN_FILE  = "concat_result.csv";
+D_ORIGIN_FILE  = "00_lcd_data.csv"
 D_TOTAL   = "02-D_totoal.csv";
 D_EXPIRED = "02-D_expired.csv";
 
@@ -59,11 +59,11 @@ for row in df.itertuples(index=True, name='Pandas'):
         life = 0;
 
     if end_str:
-        print ("Expired,%s,%d,%d,%d,%d" % (product, start, end, due,life));
+        #print ("Expired,%s,%d,%d,%d,%d" % (product, start, end, due,life));
         writer_total.writerow(['Expired', product, start, end, due,life]);
         writer_expired.writerow([start, due, life]);
     else:
-        print ("Used,%s,%d,%d,%d,%d" % (product, start, end, due, life));
+        #print ("Used,%s,%d,%d,%d,%d" % (product, start, end, due, life));
         writer_total.writerow(['Used', product, start, end, due,life]);
 
 fw_total.close()
@@ -87,17 +87,22 @@ for i, row in enumerate(dataset.values):
     print("=====================")
     print("year: %d -- %d" % (row[2], row[3]));
 
-    if row[2] > 2000:
-        start = row[2] - 2000;
-        data_new[start] = data_new[start] + 1; 
-    else:
-        start = 2000 - 2000;
+    if row[2] <= 2000:
+        continue
+
+    if (row[3] != 0) and (row[3] <= 2000):
+        continue
+
+    start = row[2] - 2000;
+    data_new[start] = data_new[start] + 1;
 
     if row[3] > 2000:
         end = row[3] - 2000;
-        data_del[end] = data_del[end] + 1; 
     else:
+        # assume use until 2020
         end = 2020 - 2000;
+
+    data_del[end] = data_del[end] + 1;
 
     print("index: %d -- %d" % (start, end));
 
@@ -106,9 +111,10 @@ for i, row in enumerate(dataset.values):
 
     #print(row)
     #expired, product, start, end, due = row
-    print ("[new    ] ", (['%2d'% data_new[n] for n in range(len(data_new))]));
-    print ("[current] ", (['%2d'% data_cur[n] for n in range(len(data_cur))]));
-    print ("[del    ] ", (['%2d'% data_del[n] for n in range(len(data_del))]));
+    print ("[year   ] ", (['%d'% (n+2000) for n in range(len(data_cur))]));
+    print ("[current] ", (['%d'% data_cur[n] for n in range(len(data_cur))]));
+    print ("[new    ] ", (['%d'% data_new[n] for n in range(len(data_new))]));
+    print ("[del    ] ", (['%d'% data_del[n] for n in range(len(data_del))]));
 
 # class distribution
 print(dataset.groupby('start').size())
