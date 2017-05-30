@@ -28,7 +28,7 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-D_ORIGIN_FILE  = "04_20170516.csv";
+D_ORIGIN_FILE  = "1_plan_20170526.csv"
 
 # Load dataset
 url = D_ORIGIN_FILE;
@@ -36,6 +36,7 @@ df = pd.read_csv(url, sep='|')
 
 
 multikey_dic = {}
+year_value = {}
 
 #>>> alias1 in mydict
 #True
@@ -51,9 +52,9 @@ for row in df.itertuples(index=True, name='Pandas'):
     update = int(str(getattr(row, "차수")).replace(" ", ""))
     plan = int(str(getattr(row, "취득계획수량")).replace(" ", ""))
 
-    #if product != "데스크톱컴퓨터": 
+    if product != "데스크톱컴퓨터": 
     #if product != "LCD패널또는모니터":
-    #     continue;
+         continue;
 
     alias = (name, product, year)
 
@@ -62,17 +63,28 @@ for row in df.itertuples(index=True, name='Pandas'):
         a = multikey_dic[alias]
         if( update > a[0]):
             multikey_dic[alias] = [update, plan]
-            print ("Update: [%d, %d] => [%d, %d]" % (a[0], a[1], update, plan))
+            #print ("Update: [%d, %d] => [%d, %d]" % (a[0], a[1], update, plan))
     else:
         multikey_dic[alias] = [update, plan]
 
-for k in multikey_dic.keys():
-    print(k)
-#print (multikey_dic[alias])
+for key in multikey_dic.keys():
+    a = multikey_dic[key]
+    year = key[2]
 
+    print ("=================")
+    print (key)
+    print (a)
 
+    alias = (year)
+    if alias in year_value:
+        year_value[alias] = year_value[alias] + a[1];
+    else:
+        year_value[alias] = a[1];
 
-#print (multikey_dic)
+    for key in year_value.keys():
+        a = year_value[key]
+        print ("%d, %d" % (key, a))
+
 
 
 
