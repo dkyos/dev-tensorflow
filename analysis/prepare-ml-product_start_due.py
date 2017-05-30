@@ -28,7 +28,7 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-D_ORIGIN_FILE  = "02_20170516_G.csv";
+D_ORIGIN_FILE  = "00_lcd_data.csv";
 D_TOTAL   = "02-G_totoal.csv";
 D_EXPIRED = "02-G_expired.csv";
 

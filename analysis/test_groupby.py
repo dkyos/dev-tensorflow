@@ -30,7 +30,8 @@ print('sklearn: {}'.format(sklearn.__version__))
 
 ## files
 #D_ORIGIN_FILE  = "02_20170516_A.csv";
-D_ORIGIN_FILE  = "02_20170516_G.csv";
+#D_ORIGIN_FILE  = "02_20170516_G.csv";
+D_ORIGIN_FILE  = "00_total_concat_data.csv";
 
 #############################
 ## read csv with pandas api
