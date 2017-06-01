@@ -26,6 +26,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.svm import SVR
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+import tensorflow as tf
 print('Python: {}'.format(sys.version))
 print('scipy: {}'.format(scipy.__version__))
 print('numpy: {}'.format(numpy.__version__))
@@ -33,14 +34,22 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-FILE_SRC        = "train.csv";
-FILE_PREDICT    = "predict.csv";
+# parameters
+tf.flags.DEFINE_string("train", "train.csv", "Train file path with name")
+tf.flags.DEFINE_string("predict", "predict.csv", "Predict file path with name")
+
+FLAGS = tf.flags.FLAGS
+FLAGS._parse_flags()
+print("\nParameters:")
+for attr, value in sorted(FLAGS.__flags.items()):
+    print("{}={}".format(attr.upper(), value))
+print("")
 
 ##############################################################################
 ## Train
 
 # Load dataset
-url = FILE_SRC;
+url = FLAGS.train;
 names = ['part', 'due', 'life', 'class']
 df = pandas.read_csv(url, delimiter='|', names=names)
 
@@ -51,7 +60,7 @@ print(df.describe())
 print(df.groupby('class').size())
 
 # reduce data with 'class' == 0
-print(df[df['class'] == 0].sample(frac=.1).index )
+print(df[df['class'] == 0].sample(frac=.9).index )
 dataset = df.drop( df[df['class'] == 0].sample(frac=.9).index )
 
 # check data
@@ -79,6 +88,7 @@ X_train, X_validation, Y_train, Y_validation = model_selection.train_test_split(
 seed = 7
 scoring = 'accuracy'
 
+'''
 # Spot Check Algorithms
 models = []
 models.append(('LR', LogisticRegression()))
@@ -106,6 +116,7 @@ ax = fig.add_subplot(111)
 plt.boxplot(results)
 ax.set_xticklabels(names)
 plt.show()
+'''
 
 # Make predictions on validation dataset
 ml_alg = LogisticRegression();
@@ -120,7 +131,7 @@ print(classification_report(Y_validation, predictions))
 ## Predict
 
 # Load dataset
-url = FILE_PREDICT;
+url = FLAGS.predict
 names = ['part', 'due', 'life', 'class']
 dataset = pandas.read_csv(url, delimiter='|', names=names)
 
@@ -136,15 +147,32 @@ X = onehotencoder.fit_transform(X).toarray()
 print (X)
 
 # Predict
-predictions = knn.predict(X)
+predictions = ml_alg.predict(X)
 print(accuracy_score(Y, predictions))
 print(confusion_matrix(Y, predictions))
 print(classification_report(Y, predictions))
 
 # check
+o_o = 0
+o_l = 0
+l_o = 0
+l_l = 0
 for i, j in zip(Y, predictions): 
-    if i == 1 and i == j:
-        print("OK")
-    elif i == 1 and i != j:
-        print("FAIL")
+    #print("(%d, %d)" % (i, j))
+    if (i == 0 and j == 0):
+        o_o = o_o + 1;
+    elif (i == 0 and j == 1):
+        o_l = o_l + 1;
+
+    if (i == 1 and j == 0):
+        l_o = l_o + 1;
+    elif (i == 1 and j == 1):
+        l_l = l_l + 1;
+
+
+print ("(0 => 1) %d" % o_l)
+print ("(0 => 0) %d %3.2f (%d/%d)" % (o_o, float(o_o/(o_o + o_l)), o_o, o_o + o_l))
+print ("(1 => 0) %d" % l_o)
+print ("(1 => 1) %d %3.2f (%d/%d)" % (l_l, float(l_l/(l_o + l_l)), l_l, l_o + l_l))
+
 

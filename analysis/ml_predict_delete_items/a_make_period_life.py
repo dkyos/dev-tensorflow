@@ -11,6 +11,7 @@ import sklearn
 import pandas
 import datetime
 import pandas as pd
+import tensorflow as tf
 from pandas.tools.plotting import scatter_matrix
 import matplotlib.pyplot as plt
 from sklearn import model_selection
@@ -32,34 +33,43 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-FILE_SRC  = "test.csv";
-FILE_DST  = "result.csv";
+# parameters
+tf.flags.DEFINE_string("src", "test.csv", "Original data file")
+tf.flags.DEFINE_string("dst", "result.csv", "Original data file")
+tf.flags.DEFINE_integer("start", 2000, "start year")
+tf.flags.DEFINE_integer("end", 2021, "end year")
 
-START = 2000;
-END   = 2021;
+FLAGS = tf.flags.FLAGS
+FLAGS._parse_flags()
+print("\nParameters:")
+for attr, value in sorted(FLAGS.__flags.items()):
+    print("{}={}".format(attr.upper(), value))
+print("")
 
-url = FILE_SRC;
+url = FLAGS.src;
 df = pd.read_csv(url, sep='|')
 
-for i in range(START, END):
+df['purchase'] = 0
+df['disposal'] = 0
+for i in range(FLAGS.start, FLAGS.end):
     df[str(i)] = 0
 
 for index, row in df.iterrows():
     start = datetime.datetime.strptime(str(row["취득일자"]), "%Y%m%d").year
+    df.set_value(index, 'purchase', start);
+
     end_str = str(row["처분일자"]);
     if end_str != "nan":
         end = datetime.datetime.strptime(str(int(float(end_str))), "%Y%m%d").year
+        df.set_value(index, 'disposal', end);
     else:
-        end = END;
-
-    #print("---------")
-    #print ("%d,%d" % (start, end));
+        end = FLAGS.end;
 
     if start >= 2000: 
         for i in range(start, end+1):
             df.set_value(index, str(i), i - start + 1);
-        for i in range(end, END+1):
+        for i in range(end, FLAGS.end + 1):
             df.set_value(index, str(i), end - i-1);
 
-df.to_csv(FILE_DST, sep='|', index=False)
+df.to_csv(FLAGS.dst, sep='|', index=False)
 

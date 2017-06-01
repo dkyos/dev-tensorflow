@@ -11,6 +11,7 @@ import sklearn
 import pandas
 import datetime
 import pandas as pd
+import tensorflow as tf
 from pandas.tools.plotting import scatter_matrix
 import matplotlib.pyplot as plt
 from sklearn import model_selection
@@ -32,29 +33,36 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-FILE_SRC  = "result.csv";
+# parameters
+tf.flags.DEFINE_string("src", "result.csv", "Original data file")
+tf.flags.DEFINE_integer("start", 2000, "start year")
+tf.flags.DEFINE_integer("end", 2021, "end year")
 
-START = 2000;
-END   = 2021;
+FLAGS = tf.flags.FLAGS
+FLAGS._parse_flags()
+print("\nParameters:")
+for attr, value in sorted(FLAGS.__flags.items()):
+    print("{}={}".format(attr.upper(), value))
+print("")
 
-url = FILE_SRC;
+url = FLAGS.src;
 df = pd.read_csv(url, sep='|')
 
 print ("===========================")
-for i in range(START, END+1):
-    print ("-- Retain -----------")
+for i in range(FLAGS.start, FLAGS.end+1):
+    print ("-- possesion -----------")
     print (i)
     print (df.loc[df[str(i)] >= 1].shape)
 
 print ("===========================")
-for i in range(START, END+1):
-    print ("-- Delete -----------")
+for i in range(FLAGS.start, FLAGS.end+1):
+    print ("-- Disposal -----------")
     print (i)
-    print (df.loc[df[str(i)] == -1].shape)
+    print (df.loc[df['disposal'] == i].shape)
 
 print ("===========================")
-for i in range(START, END+1):
-    print ("-- Buy -----------")
+for i in range(FLAGS.start, FLAGS.end+1):
+    print ("-- Purchase -----------")
     print (i)
-    print (df.loc[df[str(i)] == 1].shape)
+    print (df.loc[df['purchase'] == i].shape)
 

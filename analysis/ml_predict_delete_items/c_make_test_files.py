@@ -11,6 +11,7 @@ import sklearn
 import pandas
 import datetime
 import pandas as pd
+import tensorflow as tf
 from pandas.tools.plotting import scatter_matrix
 import matplotlib.pyplot as plt
 from sklearn import model_selection
@@ -32,27 +33,32 @@ print('matplotlib: {}'.format(matplotlib.__version__))
 print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
-FILE_SRC  = "result.csv";
-TRAIN_DST  = "train.csv";
-PREDICT_DST  = "predict.csv";
+# parameters
+tf.flags.DEFINE_string("src", "test.csv", "Original data file")
+tf.flags.DEFINE_string("train", "train.csv", "Train destination file")
+tf.flags.DEFINE_string("predict", "predict.csv", "Predict destination file")
 
-START = 2000;
-END   = 2021;
+tf.flags.DEFINE_integer("train_year", 2015, "Train year")
+tf.flags.DEFINE_integer("predict_year", 2016, "Predict year")
 
-TRAIN_YEAR = 2015
-PREDICT_YEAR = 2016
+FLAGS = tf.flags.FLAGS
+FLAGS._parse_flags()
+print("\nParameters:")
+for attr, value in sorted(FLAGS.__flags.items()):
+    print("{}={}".format(attr.upper(), value))
+print("")
 
-fw_train = open(TRAIN_DST, "w");
-fw_predict = open(PREDICT_DST, "w");
+fw_train = open(FLAGS.train, "w");
+fw_predict = open(FLAGS.predict, "w");
 writer_train = csv.writer(fw_train, delimiter='|');
 writer_predict = csv.writer(fw_predict, delimiter='|');
 
-url = FILE_SRC;
+url = FLAGS.src;
 df = pd.read_csv(url, sep='|')
 
 print ("### make train data")
-df1 = df.loc[ (df[str(TRAIN_YEAR)] == -1) ];
-df2 = df.loc[ (df[str(TRAIN_YEAR)] > 1) ];
+df1 = df.loc[ (df[str(FLAGS.train_year)] == -1) ];
+df2 = df.loc[ (df[str(FLAGS.train_year)] > 1) ];
 print (df1.shape);
 print (df2.shape);
 frames = [df1, df2]
@@ -63,8 +69,8 @@ for index, row in df_row.iterrows():
     due = int(row["내용연수"]);
     start = datetime.datetime.strptime(str(row["취득일자"]), "%Y%m%d").year
 
-    life = int(row[str(TRAIN_YEAR-1)]);
-    k = int(row[str(TRAIN_YEAR)]);
+    life = int(row[str(FLAGS.train_year-1)]);
+    k = int(row[str(FLAGS.train_year)]);
     if k > 0:
         y = 0
     elif k == -1:
@@ -73,12 +79,14 @@ for index, row in df_row.iterrows():
         print ("BUG2 ---------------------")
         sys.exit()
 
-    print ("%s %d %d => %d" % (part, due, life, y))
+    if (index % 1000)  == 0:
+        print ("%s %d %d => %d" % (part, due, life, y))
+
     writer_train.writerow([part, due, life, y]);
 
 print ("### make predict data")
-df1 = df.loc[ (df[str(PREDICT_YEAR)] == -1) ];
-df2 = df.loc[ (df[str(PREDICT_YEAR)] > 1) ];
+df1 = df.loc[ (df[str(FLAGS.predict_year)] == -1) ];
+df2 = df.loc[ (df[str(FLAGS.predict_year)] > 1) ];
 print (df1.shape);
 print (df2.shape);
 frames = [df1, df2]
@@ -89,8 +97,8 @@ for index, row in df_row.iterrows():
     due = int(row["내용연수"]);
     start = datetime.datetime.strptime(str(row["취득일자"]), "%Y%m%d").year
 
-    life = int(row[str(PREDICT_YEAR-1)]);
-    k = int(row[str(PREDICT_YEAR)]);
+    life = int(row[str(FLAGS.predict_year-1)]);
+    k = int(row[str(FLAGS.predict_year)]);
     if k > 0:
         y = 0
     elif k == -1:
@@ -99,9 +107,10 @@ for index, row in df_row.iterrows():
         print ("BUG ---------------------")
         sys.exit()
 
-    print ("%s %d %d => %d" % (part, due, life, y))
+    if (index % 1000)  == 0:
+        print ("%s %d %d => %d" % (part, due, life, y))
+
     writer_predict.writerow([part, due, life, y]);
 
 fw_train.close()
 fw_predict.close()
-
