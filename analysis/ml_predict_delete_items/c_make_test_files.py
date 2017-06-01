@@ -34,7 +34,7 @@ print('pandas: {}'.format(pandas.__version__))
 print('sklearn: {}'.format(sklearn.__version__))
 
 # parameters
-tf.flags.DEFINE_string("src", "test.csv", "Original data file")
+tf.flags.DEFINE_string("src", "result.csv", "Original data file")
 tf.flags.DEFINE_string("train", "train.csv", "Train destination file")
 tf.flags.DEFINE_string("predict", "predict.csv", "Predict destination file")
 
