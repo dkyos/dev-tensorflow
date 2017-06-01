@@ -45,8 +45,12 @@ for attr, value in sorted(FLAGS.__flags.items()):
     print("{}={}".format(attr.upper(), value))
 print("")
 
+np.random.seed(777)
+
 ##############################################################################
 ## Train
+
+print ("############### Train ####################")
 
 # Load dataset
 url = FLAGS.train;
@@ -60,8 +64,7 @@ print(df.describe())
 print(df.groupby('class').size())
 
 # reduce data with 'class' == 0
-print(df[df['class'] == 0].sample(frac=.9).index )
-dataset = df.drop( df[df['class'] == 0].sample(frac=.9).index )
+dataset = df.drop( df[df['class'] == 0].sample(frac=.8).index )
 
 # check data
 print(dataset.groupby('class').size())
@@ -119,7 +122,11 @@ plt.show()
 '''
 
 # Make predictions on validation dataset
-ml_alg = LogisticRegression();
+#ml_alg = LogisticRegression();
+ml_alg = LinearDiscriminantAnalysis();
+#ml_alg = KNeighborsClassifier();
+#ml_alg = DecisionTreeClassifier();
+#ml_alg = SVC();
 ml_alg.fit(X_train, Y_train)
 
 predictions = ml_alg.predict(X_validation)
@@ -127,13 +134,39 @@ print(accuracy_score(Y_validation, predictions))
 print(confusion_matrix(Y_validation, predictions))
 print(classification_report(Y_validation, predictions))
 
+# check
+o_o = 0; o_l = 0; l_o = 0; l_l = 0
+for i, j in zip(Y_validation, predictions): 
+    #print("(%d, %d)" % (i, j))
+    if (i == 0 and j == 0):
+        o_o = o_o + 1;
+    elif (i == 0 and j == 1):
+        o_l = o_l + 1;
+
+    if (i == 1 and j == 0):
+        l_o = l_o + 1;
+    elif (i == 1 and j == 1):
+        l_l = l_l + 1;
+
+print ("(0 => 1) %d" % o_l)
+print ("(0 => 0) %d %3.2f (%d/%d)" % (o_o, float(o_o/(o_o + o_l)), o_o, o_o + o_l))
+print ("(1 => 0) %d" % l_o)
+print ("(1 => 1) %d %3.2f (%d/%d)" % (l_l, float(l_l/(l_o + l_l)), l_l, l_o + l_l))
+
+print (" => real %3.2f" % ( (o_l + l_l)/(l_o + l_l) ) )
+
 ##############################################################################
 ## Predict
+
+print ("############### Predict ####################")
 
 # Load dataset
 url = FLAGS.predict
 names = ['part', 'due', 'life', 'class']
 dataset = pandas.read_csv(url, delimiter='|', names=names)
+
+# check data
+print(dataset.groupby('class').size())
 
 # make X, Y
 X = dataset.iloc[:, 0:3].values
@@ -153,10 +186,7 @@ print(confusion_matrix(Y, predictions))
 print(classification_report(Y, predictions))
 
 # check
-o_o = 0
-o_l = 0
-l_o = 0
-l_l = 0
+o_o = 0; o_l = 0; l_o = 0; l_l = 0
 for i, j in zip(Y, predictions): 
     #print("(%d, %d)" % (i, j))
     if (i == 0 and j == 0):
@@ -169,10 +199,9 @@ for i, j in zip(Y, predictions):
     elif (i == 1 and j == 1):
         l_l = l_l + 1;
 
-
 print ("(0 => 1) %d" % o_l)
 print ("(0 => 0) %d %3.2f (%d/%d)" % (o_o, float(o_o/(o_o + o_l)), o_o, o_o + o_l))
 print ("(1 => 0) %d" % l_o)
 print ("(1 => 1) %d %3.2f (%d/%d)" % (l_l, float(l_l/(l_o + l_l)), l_l, l_o + l_l))
 
-
+print (" => real %3.2f" % ( (o_l + l_l)/(l_o + l_l) ) )
