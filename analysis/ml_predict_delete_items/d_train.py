@@ -176,7 +176,10 @@ names = ['part', 'due', 'life', 'class']
 dataset = pandas.read_csv(url, delimiter='|', names=names)
 
 # check data
-print(dataset.groupby('class').size())
+print(dataset.groupby('part').size().sort_values(ascending=False))
+print(dataset.groupby('due').size().sort_values(ascending=False))
+print(dataset.groupby('life').size().sort_values(ascending=False))
+print(dataset.groupby('class').size().sort_values(ascending=False))
 
 # make X, Y
 X = dataset.iloc[:, 0:3].values
