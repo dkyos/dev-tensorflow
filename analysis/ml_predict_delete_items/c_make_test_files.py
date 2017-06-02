@@ -57,7 +57,7 @@ url = FLAGS.src;
 df = pd.read_csv(url, sep='|')
 
 print ("### make train data")
-df1 = df.loc[ (df[str(FLAGS.train_year)] == -1) ];
+df1 = df.loc[ (df['purchase'] < FLAGS.train_year) & (df[str(FLAGS.train_year)] == -1)];
 df2 = df.loc[ (df[str(FLAGS.train_year)] > 1) ];
 print (df1.shape);
 print (df2.shape);
@@ -85,7 +85,7 @@ for index, row in df_row.iterrows():
     writer_train.writerow([part, due, life, y]);
 
 print ("### make predict data")
-df1 = df.loc[ (df[str(FLAGS.predict_year)] == -1) ];
+df1 = df.loc[ (df['purchase'] < FLAGS.predict_year) & (df[str(FLAGS.predict_year)] == -1)];
 df2 = df.loc[ (df[str(FLAGS.predict_year)] > 1) ];
 print (df1.shape);
 print (df2.shape);
