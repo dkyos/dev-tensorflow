@@ -76,10 +76,20 @@ Y = dataset.iloc[:, 3].values
 # One Hot Encoding 
 labelenc = LabelEncoder()
 print (X)
-X[:, 0] = labelenc.fit_transform(X[:, 0])
+labelenc.fit( ['A', 'B','C','D','E','F','G','H','I','J', \
+'K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', \
+'AA','AB','AC','AD','AE','AF','AG','AH','AI','AJ',\
+'AK','AL','AM','AN','AO','AP','AQ','AR','AS','AT','AU','AV','AW','AX','AY','AZ'] )
+#labelenc.fit(X[:, 0])
+print (labelenc.classes_)
+X[:, 0] = labelenc.transform(X[:, 0])
 print (X)
 onehotencoder = OneHotEncoder(categorical_features=[0])
-X = onehotencoder.fit_transform(X).toarray()   
+onehotencoder.fit(X)
+print (onehotencoder.n_values_)
+X = onehotencoder.transform(X).toarray()
+print (onehotencoder.active_features_)
+print (onehotencoder.feature_indices_)
 print (X)
 
 # Split-out validation dataset
@@ -174,9 +184,9 @@ Y = dataset.iloc[:, 3].values
 
 # One Hot Encoding
 print (X)
-X[:, 0] = labelenc.fit_transform(X[:, 0])
+X[:, 0] = labelenc.transform(X[:, 0])
 print (X)
-X = onehotencoder.fit_transform(X).toarray()   
+X = onehotencoder.transform(X).toarray()
 print (X)
 
 # Predict
