@@ -111,8 +111,9 @@ from keras.layers import Dense
 classifier = Sequential()
 
 # Adding the input layer and the first hidden Layer
-classifier.add(Dense(units=64, kernel_initializer='glorot_uniform', activation='relu', input_dim=3))
-classifier.add(Dense(units=32, kernel_initializer='glorot_uniform', activation='relu'))
+classifier.add(Dense(units=50, kernel_initializer='glorot_uniform', activation='relu', input_dim=52))
+classifier.add(Dense(units=50, kernel_initializer='glorot_uniform', activation='relu'))
+classifier.add(Dense(units=50, kernel_initializer='glorot_uniform', activation='relu'))
 
 # Adding the output layer
 classifier.add(Dense(units=1, kernel_initializer='random_normal', activation='sigmoid'))

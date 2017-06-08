@@ -173,13 +173,18 @@ print ("############### Predict ####################")
 # Load dataset
 url = FLAGS.predict
 names = ['part', 'due', 'life', 'class']
-dataset = pandas.read_csv(url, delimiter='|', names=names)
+df= pandas.read_csv(url, delimiter='|', names=names)
 
 # check data
-print(dataset.groupby('part').size().sort_values(ascending=False))
-print(dataset.groupby('due').size().sort_values(ascending=False))
-print(dataset.groupby('life').size().sort_values(ascending=False))
-print(dataset.groupby('class').size().sort_values(ascending=False))
+print(df.groupby('part').size().sort_values(ascending=False))
+print(df.groupby('due').size().sort_values(ascending=False))
+print(df.groupby('life').size().sort_values(ascending=False))
+print(df.groupby('class').size().sort_values(ascending=False))
+
+print (df.shape)
+#dataset = df
+dataset = df[df['part'] == "L"]
+print (dataset.shape)
 
 # make X, Y
 X = dataset.iloc[:, 0:3].values
@@ -217,4 +222,4 @@ print ("(0 => 0) %d %3.2f (%d/%d)" % (o_o, float(o_o/(o_o + o_l)), o_o, o_o + o_
 print ("(1 => 0) %d" % l_o)
 print ("(1 => 1) %d %3.2f (%d/%d)" % (l_l, float(l_l/(l_o + l_l)), l_l, l_o + l_l))
 
-print (" => real %3.2f" % ( (o_l + l_l)/(l_o + l_l) ) )
+print (" => real %3.2f (%d / %d)" % ( (o_l + l_l)/(l_o + l_l), (o_l + l_l), (l_o + l_l)))

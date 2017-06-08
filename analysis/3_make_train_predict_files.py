@@ -38,8 +38,8 @@ tf.flags.DEFINE_string("src", "result.csv", "Original data file")
 tf.flags.DEFINE_string("train", "train.csv", "Train destination file")
 tf.flags.DEFINE_string("predict", "predict.csv", "Predict destination file")
 
-tf.flags.DEFINE_integer("train_year", 2015, "Train year")
-tf.flags.DEFINE_integer("predict_year", 2016, "Predict year")
+tf.flags.DEFINE_integer("train_year", 2014, "Train year")
+tf.flags.DEFINE_integer("predict_year", 2015, "Predict year")
 
 FLAGS = tf.flags.FLAGS
 FLAGS._parse_flags()

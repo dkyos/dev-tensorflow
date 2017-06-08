@@ -49,6 +49,7 @@ print("")
 url = FLAGS.src;
 df = pd.read_csv(url, sep='|')
 
+df['part'] = "" 
 df['purchase'] = 0
 df['disposal'] = 0
 for i in range(FLAGS.start, FLAGS.end):
@@ -56,7 +57,13 @@ for i in range(FLAGS.start, FLAGS.end):
 
 for index, row in df.iterrows():
     start = datetime.datetime.strptime(str(row["취득일자"]), "%Y%m%d").year
+    if start < 2000:
+        continue
+
     df.set_value(index, 'purchase', start);
+    
+    part = str(row["기관명"]).split('-')[0];
+    df.set_value(index, 'part', part);
 
     end_str = str(row["처분일자"]);
     if end_str != "nan":
@@ -65,11 +72,10 @@ for index, row in df.iterrows():
     else:
         end = FLAGS.end;
 
-    if start >= 2000: 
-        for i in range(start, end+1):
-            df.set_value(index, str(i), i - start + 1);
-        for i in range(end, FLAGS.end + 1):
-            df.set_value(index, str(i), end - i-1);
+    for i in range(start, end+1):
+        df.set_value(index, str(i), i - start + 1);
+    for i in range(end, FLAGS.end + 1):
+        df.set_value(index, str(i), end - i-1);
 
 df.to_csv(FLAGS.dst, sep='|', index=False)
 

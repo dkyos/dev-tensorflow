@@ -52,17 +52,37 @@ print ("===========================")
 for i in range(FLAGS.start, FLAGS.end+1):
     print ("-- possesion -----------")
     print (i)
-    print (df.loc[df[str(i)] >= 1].shape)
+    dataset = df.loc[df[str(i)] >= 1]
+    dataset.columns = df.columns
+    print (dataset.shape)
+    print (dataset[dataset['part'] == "B"].shape)
+    print (dataset[dataset['part'] == "F"].shape)
+    print (dataset[dataset['part'] == "AB"].shape)
+    print (dataset[dataset['part'] == "L"].shape)
+    #print (dataset.groupby('part').size().sort_values(ascending=False))
 
 print ("===========================")
 for i in range(FLAGS.start, FLAGS.end+1):
     print ("-- Disposal -----------")
     print (i)
-    print (df.loc[df['disposal'] == i].shape)
+    dataset = df.loc[df['disposal'] == i]
+    dataset.columns = df.columns
+    print (dataset.shape)
+    print (dataset[dataset['part'] == "B"].shape)
+    print (dataset[dataset['part'] == "F"].shape)
+    print (dataset[dataset['part'] == "AB"].shape)
+    print (dataset[dataset['part'] == "L"].shape)
+    #print (dataset.groupby('part').size().sort_values(ascending=False))
 
 print ("===========================")
 for i in range(FLAGS.start, FLAGS.end+1):
     print ("-- Purchase -----------")
     print (i)
-    print (df.loc[df['purchase'] == i].shape)
-
+    dataset = df.loc[df['purchase'] == i]
+    dataset.columns = df.columns
+    print (dataset.shape)
+    print (dataset[dataset['part'] == "B"].shape)
+    print (dataset[dataset['part'] == "F"].shape)
+    print (dataset[dataset['part'] == "AB"].shape)
+    print (dataset[dataset['part'] == "L"].shape)
+    #print (dataset.groupby('part').size().sort_values(ascending=False))
