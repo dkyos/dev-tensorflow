@@ -106,13 +106,22 @@ for sentence in sentences:
 
 print ("="*82)
 print ("Building a symmetric similarity function")
+
+""" compute the symmetric sentence similarity using Wordnet """;
 def symmetric_sentence_similarity(sentence1, sentence2):
-    """ compute the symmetric sentence similarity using Wordnet """
     return (sentence_similarity(sentence1, sentence2) + sentence_similarity(sentence2, sentence1)) / 2 
          
 for sentence in sentences:
-    print ("SymmetricSimilarity(\"%s\", \"%s\") = %s" % (focus_sentence, sentence, symmetric_sentence_similarity(focus_sentence, sentence)))
-    print ("SymmetricSimilarity(\"%s\", \"%s\") = %s" % (sentence, focus_sentence, symmetric_sentence_similarity(sentence, focus_sentence)))
+    print ("SymmetricSimilarity(\"%s\", \"%s\") = %s" % (
+        focus_sentence, 
+        sentence, 
+        symmetric_sentence_similarity(focus_sentence, sentence)
+    ))
+    print ("SymmetricSimilarity(\"%s\", \"%s\") = %s" % (
+        sentence, 
+        focus_sentence, 
+        symmetric_sentence_similarity(sentence, focus_sentence)
+    ))
     print 
                           
 # SymmetricSimilarity("Cats are beautiful animals.", "Dogs are awesome.") = 0.588888888889
