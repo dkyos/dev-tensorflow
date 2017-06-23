@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from nltk import word_tokenize, pos_tag
 from nltk.corpus import wordnet as wn
+from sklearn.metrics import classification_report
+from sklearn.metrics import precision_score
 
 print ("=== Load Data ========================")
 df_train = pd.read_csv('../input/train.csv')
@@ -70,15 +72,29 @@ def sentence_similarity(sentence1, sentence2):
     # For each word in the first sentence
     for synset in synsets1:
         # Get the similarity value of the most similar word in the other sentence
-        best_score = max([path_similarity_won(synset, ss) for ss in synsets2])
+
+        list = [path_similarity_won(synset, ss) for ss in synsets2]
+        if list:
+            best_score = max(list)
+        else:
+            best_score = 0
 
         # Check that the similarity could have been computed
         if best_score is not None:
             score += best_score
         count += 1
 
+    #print ("score:%d count:%d " % (score, count))
+
     # Average the values
-    score /= count
+    if count != 0:
+        score /= count
+    else:
+        if score != 0:
+            # error
+            score /= count
+        else:
+            score = 0
     return score
 
 """ compute the symmetric sentence similarity using Wordnet """;
@@ -95,25 +111,48 @@ def wordnet_similarity(row):
     doc1 = row['question1'].lower()
     doc2 = row['question2'].lower()
 
+    #print ("[%s]|||||[%s] " % (doc1, doc2) )
+
     R = symmetric_sentence_similarity(doc1, doc2)
 
-    if row['is_duplicate'] == 1 :
-        print ("1: %.2f" % (R) )
-    else:
-        print ("0: %.2f" % (R) )
+    #if row['is_duplicate'] == 1 :
+    #    print ("    => 1: %.2f " % (R) )
+    #else:
+    #    print ("    => 0: %.2f " % (R) )
 
-    if R > 0.9:
-        return 1
-    else: 
-        return 0
+    return R
 
 print ("=== spacy similarity match ========================")
 train_similarity = df_train.apply(wordnet_similarity, axis=1, raw=True)
 
-from sklearn.metrics import classification_report
-from sklearn.metrics import precision_score
-print ("=== Precision score ========================")
-print(precision_score(df_train['is_duplicate'], train_similarity))
-print ("=== Classification Report ========================")
-print(classification_report(df_train['is_duplicate'], train_similarity))
+df_train_1 = df_train[ df_train['is_duplicate'] == 1 ]
+#print (df_train_1[:20])
+
+train_similarity_0 = train_similarity[ df_train['is_duplicate'] == 0 ]
+train_similarity_1 = train_similarity[ df_train['is_duplicate'] == 1 ]
+print (train_similarity_0[:10])
+print (train_similarity_1[:10])
+
+pal = sns.color_palette();
+
+plt.figure(figsize=(15, 10))
+plt.hist(train_similarity_0, bins=50, color=pal[2], normed=True)
+plt.title('Normalised histogram of wordnet similarity score (with 0)', fontsize=15)
+plt.legend()
+plt.xlabel('Number', fontsize=15)
+plt.ylabel('Wordnet score', fontsize=15)
+plt.show()
+
+plt.figure(figsize=(15, 10))
+plt.hist(train_similarity_1, bins=50, color=pal[1], normed=True, label='train')
+plt.title('Normalised histogram of wordnet similarity score (with 1)', fontsize=15)
+plt.legend()
+plt.xlabel('Number', fontsize=15)
+plt.ylabel('Wordnet score', fontsize=15)
+plt.show()
+
+#print ("=== Precision score ========================")
+#print(precision_score(df_train['is_duplicate'], train_similarity))
+#print ("=== Classification Report ========================")
+#print(classification_report(df_train['is_duplicate'], train_similarity))
 
