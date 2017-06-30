@@ -11,7 +11,8 @@ from konlpy.tag import Twitter
 
 from keras.preprocessing import sequence
 from keras.models import Sequential
-from keras.layers import Dense, Embedding
+from keras.layers.core import Dense
+from keras.layers.embeddings import Embedding
 from keras.layers import LSTM
 from keras.datasets import imdb
 

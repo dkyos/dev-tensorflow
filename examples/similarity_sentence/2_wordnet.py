@@ -86,10 +86,10 @@ sentences = [
 focus_sentence = "Red wine"
 
 print ("="*82)
-for sentence in sentences:
-    print ("Similarity(\"%s\", \"%s\") = %f" % (focus_sentence, sentence, sentence_similarity(focus_sentence, sentence)))
-    print ("Similarity(\"%s\", \"%s\") = %s" % (sentence, focus_sentence, sentence_similarity(sentence, focus_sentence)))
-    print 
+#for sentence in sentences:
+#    print ("Similarity(\"%s\", \"%s\") = %f" % (focus_sentence, sentence, sentence_similarity(focus_sentence, sentence)))
+#    print ("Similarity(\"%s\", \"%s\") = %s" % (sentence, focus_sentence, sentence_similarity(sentence, focus_sentence)))
+#    print 
 
 # Similarity("Cats are beautiful animals.", "Dogs are awesome.") = 0.511111111111
 # Similarity("Dogs are awesome.", "Cats are beautiful animals.") = 0.666666666667
@@ -103,7 +103,7 @@ for sentence in sentences:
 # Similarity("Cats are beautiful animals.", "Cats are beautiful animals.") = 1.0
 # Similarity("Cats are beautiful animals.", "Cats are beautiful animals.") = 1.0
 
-
+'''
 print ("="*82)
 print ("Building a symmetric similarity function")
 
@@ -123,7 +123,8 @@ for sentence in sentences:
         symmetric_sentence_similarity(sentence, focus_sentence)
     ))
     print 
-                          
+'''
+
 # SymmetricSimilarity("Cats are beautiful animals.", "Dogs are awesome.") = 0.588888888889
 # SymmetricSimilarity("Dogs are awesome.", "Cats are beautiful animals.") = 0.588888888889
                            
