@@ -1,8 +1,6 @@
-
-# coding: utf-8
-
-# In[1]:
-
+#!/usr/bin/env python
+# Ref: https://sefiks.com/2018/08/06/deep-face-recognition-with-keras/
+# Ref: https://drive.google.com/file/d/1CPSeum3HpopfomUEK1gybeuIVoeJT_Eo/view?usp=sharing
 
 from keras.models import Model, Sequential
 from keras.layers import Input, Convolution2D, ZeroPadding2D, MaxPooling2D, Flatten, Dense, Dropout, Activation
@@ -12,10 +10,7 @@ from keras.preprocessing.image import load_img, save_img, img_to_array
 from keras.applications.imagenet_utils import preprocess_input
 from keras.preprocessing import image
 import matplotlib.pyplot as plt
-
-
-# In[2]:
-
+#from keras.models import model_from_json
 
 model = Sequential()
 model.add(ZeroPadding2D((1,1),input_shape=(224,224, 3)))
@@ -62,20 +57,11 @@ model.add(Convolution2D(2622, (1, 1)))
 model.add(Flatten())
 model.add(Activation('softmax'))
 
-
-# In[3]:
-
-
-#you can download the pretrained weights from the following link 
-#https://drive.google.com/file/d/1CPSeum3HpopfomUEK1gybeuIVoeJT_Eo/view?usp=sharing
-#or you can find the detailed documentation https://sefiks.com/2018/08/06/deep-face-recognition-with-keras/
-
-from keras.models import model_from_json
-model.load_weights('C:/Users/IS96273/Desktop/vgg_face_weights.h5')
-
-
-# In[4]:
-
+# Load pre-trained model
+model.load_weights('./vgg_face_weights.h5')
+print(model.summary())
+vgg_face_descriptor = Model(inputs=model.layers[0].input, outputs=model.layers[-2].output)
+print(vgg_face_descriptor.summary())
 
 def preprocess_image(image_path):
     img = load_img(image_path, target_size=(224, 224))
@@ -83,9 +69,6 @@ def preprocess_image(image_path):
     img = np.expand_dims(img, axis=0)
     img = preprocess_input(img)
     return img
-
-
-# In[5]:
 
 
 def findCosineSimilarity(source_representation, test_representation):
@@ -100,21 +83,11 @@ def findEuclideanDistance(source_representation, test_representation):
     euclidean_distance = np.sqrt(euclidean_distance)
     return euclidean_distance
 
-
-# In[6]:
-
-
-vgg_face_descriptor = Model(inputs=model.layers[0].input, outputs=model.layers[-2].output)
-
-
-# In[22]:
-
-
 epsilon = 0.40
 
 def verifyFace(img1, img2):
-    img1_representation = vgg_face_descriptor.predict(preprocess_image('C:/Users/IS96273/Desktop/trainset/%s' % (img1)))[0,:]
-    img2_representation = vgg_face_descriptor.predict(preprocess_image('C:/Users/IS96273/Desktop/trainset/%s' % (img2)))[0,:]
+    img1_representation = vgg_face_descriptor.predict(preprocess_image('./%s' % (img1)))[0,:]
+    img2_representation = vgg_face_descriptor.predict(preprocess_image('./%s' % (img2)))[0,:]
     
     cosine_similarity = findCosineSimilarity(img1_representation, img2_representation)
     euclidean_distance = findEuclideanDistance(img1_representation, img2_representation)
@@ -129,40 +102,12 @@ def verifyFace(img1, img2):
     
     f = plt.figure()
     f.add_subplot(1,2, 1)
-    plt.imshow(image.load_img('C:/Users/IS96273/Desktop/trainset/%s' % (img1)))
+    plt.imshow(image.load_img('./%s' % (img1)))
     plt.xticks([]); plt.yticks([])
     f.add_subplot(1,2, 2)
-    plt.imshow(image.load_img('C:/Users/IS96273/Desktop/trainset/%s' % (img2)))
+    plt.imshow(image.load_img('./%s' % (img2)))
     plt.xticks([]); plt.yticks([])
     plt.show(block=True)
     print("-----------------------------------------")
 
-
-# In[23]:
-
-
 verifyFace("1.jpg", "2.jpg")
-verifyFace("1.jpg", "3.jpg")
-verifyFace("1.jpg", "4.jpg")
-verifyFace("1.jpg", "5.jpg")
-verifyFace("1.jpg", "6.jpg")
-verifyFace("1.jpg", "7.jpg")
-
-
-# In[24]:
-
-
-verifyFace("1.jpg", "8.jpg")
-verifyFace("1.jpg", "9.jpg")
-verifyFace("1.jpg", "10.jpg")
-verifyFace("1.jpg", "17.jpg")
-
-
-# In[25]:
-
-
-verifyFace("8.jpg", "9.jpg")
-verifyFace("8.jpg", "10.jpg")
-verifyFace("8.jpg", "17.jpg")
-verifyFace("9.jpg", "10.jpg")
-
