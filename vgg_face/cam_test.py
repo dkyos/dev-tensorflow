@@ -1,6 +1,30 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import cv2
+from tkinter import *
+import tkinter as tk
+import tkinter.simpledialog as tkSimpleDialog
+
+
+class MyDialog(tkSimpleDialog.Dialog):
+    def body(self, master):
+        self.geometry("800x600")
+        tk.Label(master, text="Save name :").grid(row=0)
+
+        self.e1 = tk.Entry(master)
+        self.e1.grid(row=0, column=1)
+        return self.e1 # initial focus
+
+    def apply(self):
+        first = self.e1.get()
+        self.result = first
+
+
+root = tk.Tk()
+root.withdraw()
+#test = MyDialog(root, "testing")
+#print (test.result)
+
 
 CAM_ID = 0
 cam = cv2.VideoCapture(CAM_ID) 
@@ -31,7 +55,7 @@ while(True):
     cv2.imshow('img', frame)
 
     #Wait 100 ms
-    k = cv2.waitKey(50)
+    k = cv2.waitKey(10)
     if (k % 0xFF) == 27:
         # ESC pressed
         print("Escape hit, closing...")
@@ -42,7 +66,10 @@ while(True):
         break
     elif (k % 0xFF) == 32:
         # SPACE pressed
-        img_name = "opencv_frame_{}.png".format(img_counter)
+        text = MyDialog(root, "testing")
+        print (text.result)
+        name = text.result
+        img_name = "./database/{}.png".format(name)
         cv2.imwrite(img_name, frame)
         print("{} written!".format(img_name))
         img_counter += 1
