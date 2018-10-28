@@ -1,13 +1,15 @@
 #!/usr/bin/env python
 
-#author Sefik Ilkin Serengil
-#you can find the documentation of this code from the following link: https://sefiks.com/2018/08/06/deep-face-recognition-with-keras/
+# author Sefik Ilkin Serengil
+# you can find the documentation of this code from the following link: 
+# https://sefiks.com/2018/08/06/deep-face-recognition-with-keras/
 
 import numpy as np
 import cv2
 
 from keras.models import Model, Sequential
-from keras.layers import Input, Convolution2D, ZeroPadding2D, MaxPooling2D, Flatten, Dense, Dropout, Activation
+from keras.layers import Input, Convolution2D, ZeroPadding2D
+from keras.layers import MaxPooling2D, Flatten, Dense, Dropout, Activation
 from PIL import Image
 from keras.preprocessing.image import load_img, save_img, img_to_array
 from keras.applications.imagenet_utils import preprocess_input
@@ -75,11 +77,13 @@ def loadVggFaceModel():
     model.add(Flatten())
     model.add(Activation('softmax'))
     
-    #you can download pretrained weights from https://drive.google.com/file/d/1CPSeum3HpopfomUEK1gybeuIVoeJT_Eo/view?usp=sharing
+    # you can download pretrained weights from 
+    # https://drive.google.com/file/d/1CPSeum3HpopfomUEK1gybeuIVoeJT_Eo/view?usp=sharing
     from keras.models import model_from_json
     model.load_weights('./vgg_face_weights.h5')
     
-    vgg_face_descriptor = Model(inputs=model.layers[0].input, outputs=model.layers[-2].output)
+    vgg_face_descriptor = Model(inputs=model.layers[0].input
+        , outputs=model.layers[-2].output)
     
     return vgg_face_descriptor
 
@@ -98,9 +102,11 @@ for file in listdir(employee_pictures):
     print(employee + " => " + extension)
 
     if extension.lower() == "png":
-        employees[employee] = model.predict(preprocess_image('./database/%s.png' % (employee)))[0,:]
+        employees[employee] = model.predict(
+            preprocess_image('./database/%s.png' % (employee)))[0,:]
     elif extension.lower() == "jpg":
-        employees[employee] = model.predict(preprocess_image('./database/%s.jpg' % (employee)))[0,:]
+        employees[employee] = model.predict(
+            preprocess_image('./database/%s.jpg' % (employee)))[0,:]
     else:
         print("Not support extension")
     
@@ -140,9 +146,12 @@ while(True):
                 employee_name = i
                 representation = employees[i]
                 
-                similarity = findCosineSimilarity(representation, captured_representation)
+                similarity = findCosineSimilarity(representation
+                    , captured_representation)
                 if(similarity < 0.30):
-                    cv2.putText(img, employee_name, (int(x+w+15), int(y-12)), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+                    cv2.putText(img, employee_name
+                        , (int(x+w+15), int(y-12))
+                        , cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                     found = 1
                     print("Found => [%s]" % employee_name)
                     break
@@ -152,7 +161,9 @@ while(True):
             cv2.line(img,(x+w,y-20),(x+w+10,y-20),color,1)
         
             if(found == 0): #if found image is not in employee database
-                cv2.putText(img, 'unknown', (int(x+w+15), int(y-12)), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+                cv2.putText(img, 'Unknown'
+                    , (int(x+w+15), int(y-12))
+                    , cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
                 print("Not Found => [Unknown]")
     
     cv2.imshow('img',img)
