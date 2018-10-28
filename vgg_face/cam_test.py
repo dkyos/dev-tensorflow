@@ -8,11 +8,16 @@ import tkinter.simpledialog as tkSimpleDialog
 
 class MyDialog(tkSimpleDialog.Dialog):
     def body(self, master):
-        self.geometry("800x600")
+        self.geometry("400x200")
         tk.Label(master, text="Save name :").grid(row=0)
 
         self.e1 = tk.Entry(master)
         self.e1.grid(row=0, column=1)
+        self.e1.config(bg='black', fg='yellow')
+
+        labelfont = ('times', 20, 'bold')
+        self.e1.config(font=labelfont)
+
         return self.e1 # initial focus
 
     def apply(self):
@@ -24,7 +29,6 @@ root = tk.Tk()
 root.withdraw()
 #test = MyDialog(root, "testing")
 #print (test.result)
-
 
 CAM_ID = 0
 cam = cv2.VideoCapture(CAM_ID) 
@@ -55,7 +59,7 @@ while(True):
     cv2.imshow('img', frame)
 
     #Wait 100 ms
-    k = cv2.waitKey(10)
+    k = cv2.waitKey(30)
     if (k % 0xFF) == 27:
         # ESC pressed
         print("Escape hit, closing...")
