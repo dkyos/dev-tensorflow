@@ -43,6 +43,8 @@ if cap.isOpened() == False:
 
 iteration = 0
 
+criterion = 80
+
 while(True):
     x = y = w = h = 0
     if iteration % 10 == 0:
@@ -57,10 +59,10 @@ while(True):
     faces = face_cascade.detectMultiScale(img, 1.3, 5)
     
     for (x,y,w,h) in faces:
-        if w > 130: 
+        if w > criterion: 
             #draw rectangle to main image
             cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2)
-            #print("%d %d %d %d" % (x, y, w, h))
+            print("Face with (%d %d %d %d)" % (x, y, w, h))
             
             #crop detected face without lines 
             detected_face = img[int(y+2):int(y+h-2)
@@ -71,10 +73,12 @@ while(True):
             #connect face and text
             cv2.line(img,(int((x+x+w)/2),y+15),(x+w,y-20),color,1)
             cv2.line(img,(x+w,y-20),(x+w+10,y-20),color,1)
+        else:
+            print("No Face with (%d %d %d %d" % (x, y, w, h))
         
     cv2.imshow('img',img)
     
-    k = cv2.waitKey(1)
+    k = cv2.waitKey(10)
     if (k % 0xFF) == 27:
         # ESC pressed
         print("Escape hit, closing...")
@@ -85,7 +89,7 @@ while(True):
         break
     elif ((k % 0xFF) == ord('s')) | ((k % 0xFF) == 32):
         # SPACE pressed
-        if w > 130: 
+        if w > criterion: 
             text = MyDialog(root, "Saving image")
             print (text.result)
             name = text.result

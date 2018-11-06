@@ -15,6 +15,7 @@ from keras.preprocessing.image import load_img, save_img, img_to_array
 from keras.applications.imagenet_utils import preprocess_input
 from keras.preprocessing import image
 import matplotlib.pyplot as plt
+import operator
 
 from os import listdir
 #-----------------------
@@ -95,6 +96,7 @@ model = loadVggFaceModel()
 employee_pictures = "./database/"
 
 employees = dict()
+similarity_dic = dict()
 
 for file in listdir(employee_pictures):
     employee, extension = file.split(".")
@@ -110,6 +112,7 @@ for file in listdir(employee_pictures):
     else:
         print("Not support extension")
     
+print(employees)
 print("employee representations retrieved successfully")
 
 def findCosineSimilarity(source_representation, test_representation):
@@ -123,13 +126,15 @@ def findCosineSimilarity(source_representation, test_representation):
 cap = cv2.VideoCapture(0) #webcam
 #cap = cv2.VideoCapture('C:/Users/IS96273/Desktop/zuckerberg.mp4') #video
 
+criterion = 80
+
 while(True):
     ret, img = cap.read()
     #img = cv2.resize(img, (640, 360))
     faces = face_cascade.detectMultiScale(img, 1.3, 5)
     
     for (x,y,w,h) in faces:
-        if w > 130: 
+        if w > criterion: 
             cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),2) #draw rectangle to main image
             
             detected_face = img[int(y):int(y+h), int(x):int(x+w)] #crop detected face
@@ -148,13 +153,20 @@ while(True):
                 
                 similarity = findCosineSimilarity(representation
                     , captured_representation)
-                if(similarity < 0.30):
-                    cv2.putText(img, employee_name
+                if i is not None:
+                    similarity_dic[i] = similarity
+
+            print(similarity_dic)
+            employee_name = min(similarity_dic.items(), key=operator.itemgetter(1))[0]
+            employee_similarity = min(similarity_dic.items(), key=operator.itemgetter(1))[1]
+            print(employee_name + " : " + str(employee_similarity))
+
+            if(employee_similarity < 0.30):
+                cv2.putText(img, employee_name
                         , (int(x+w+15), int(y-12))
                         , cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-                    found = 1
-                    print("Found => [%s]" % employee_name)
-                    break
+                found = 1
+                print("Found => [%s]" % employee_name)
                     
             #connect face and text
             cv2.line(img,(int((x+x+w)/2),y+15),(x+w,y-20),color,1)
